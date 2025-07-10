@@ -6,6 +6,162 @@
     <title>O que aprendi na Dio: HTML</title>
 </head>
 <body>
-    
+    <header>
+        <h1>O que aprendi na DIO: HTML</h1>
+        <p>Meu 1° projeto em HTML, resumindo e aplicando os princípais conceitos aprendidos durante o curso.</p>
+        <nav>
+            <ul>
+                <li><a href="#intro">Introdução</a></li>
+                <li><a href="#estrutura">Estrutura do HTML</a></li>
+                <li><a href="#atributos">Atributos</a></li>
+                <li><a href="#texto">Texto</a></li>
+                <li><a href="#lista">Lista</a></li>
+                <li><a href="#a">Links</a></li>
+                <li><a href="#form">Formulário</a></li>
+            </ul>
+        </nav>
+        <hr>
+    </header>
+
+    <main>
+        <section>
+            <h2 id="intro">Introdução</h2>
+            <p>Esta página HTML foi criada como projeto para entrega de uma atividade desafio proposto pela DIO em seu curso de HTML</p>
+            <p>Segue abaixo a proposta do desafio:</p>
+            <blockquote cite="https://web.dio.me/lab/criar-uma-pagina-web-utilizando-as-tags-aprendidas/learning/fc56c26e-95a4-419d-a5bf-48826e676952">Criar Uma Página Web Utilizando as Tags Aprendidas
+                <h3>Entendendo o Desafio</h3>
+                
+                <p>A ideia deste Desafio de Projeto é elaborar um website, utilizando uma estrutura bem básica, utilizando tags aprendidas durante as aulas práticas:</p>
+                
+                <ul>
+                    <li>Utilizar todas as tags explicadas nas aulas: <b>&lt;h1&gt;</b> até <b>&lt;h6&gt;</b>, <b>&lt;p&gt;</b>, <b>&lt;mark&gt;</b>, <b>&lt;small&gt;</b>, <b>&lt;i&gt;</b>, <b>&lt;u&gt;</b>, <b>&lt;strong&gt;</b>, <b>&lt;ol&gt;</b>, <b>&lt;ul&gt;</b>, <b>&lt;li&gt;</b>, <b>&lt;a&gt;</b>, <b>&lt;hr&gt;</b>, <b>&lt;sub&gt;</b>, <b>&lt;sup&gt;</b>, <b>&lt;blockquote&gt;</b>;</li>
+                    <li>Utilizar novas tags sugeridas: <b>&lt;font&gt;</b>, <b>&lt;del&gt;</b>, <b>&lt;p&gt;</b>, <b>&lt;abbr&gt;</b> (a ideia é buscar estas tags na internet, entender como ela funciona e utilizar no texto).</li>
+                </ul>
+                <h3>GitHub</h3>
+                <p>Todo código-fonte desenvolvido durante o curso foi versionado no GitHub, no seguinte endereço:<br>
+                <a>https://github.com/digitalinnovationone/trilha-html-modulo-1</a></p>
+                
+                <h3>Dúvidas sobre como usar o Github?</h3>
+                <p><a href="https://github.com/digitalinnovationone/trilha-html-modulo-1">Veja essa aula com o expert Felipe Aguiar, clicando aqui.</a></p>
+                <p>Bons estudos</p>
+            </blockquote>
+        </section>
+        <section>
+            <h2 id="estrutura">Estrutura Básica do HTML</h2>
+            <p>
+                <q cite="https://www.dio.me/articles/o-que-e-html-e-pra-que-serve-SC7SOT"><abbr title="HyperText Markup Language">HTML</abbr> é a linguagem de marcação básica para a criação de páginas da web.</q></br>
+                É composta por <strong>tags</strong> que abrem com <b>&lt;</b> e fecham com <b>&gt;</b>. O contéudo fica inteiramente dentro da tag <b>&lt;html&gt;</b>, dentro deles há duas tags principais:
+            </p>
+                <ol>
+                    <li><b>&lt;head&gt;</b> - O conteúdo contido no <i>head</i> carrega antes da página aparecer para o usuário</li>
+                    <li><b>&lt;body&gt;</b> - O conteúdo contido no <i>body</i> é o que aparece ao usuário</li>
+                </ol>
+            <h3 id="atributos">Atributos das Tags</h3>
+            <p>
+                <q cite="https://www.w3schools.com/html/html_attributes.asp">Atributos provêm informações adicionais aos elementos HTML.</q></br>
+                Eles são sempre especificados na abertura das tags e comumente são inseridos em pares como: <code>name="value"</code>
+            </p>
+            <p>
+                A seguir alguns exemplos de atributos:
+                <ul>
+                    <li><code>&lt;strong <b>id="titulo"</b></code> - usado para identificação para ser manipulado posteriormente via <strong>javascript</strong>;</li>
+                    <li><code>&lt;strong <b>style="color:blue"</b></code> - usado para atribuir um <i>style</i> ao elemento, sobrescrevendo ao <i>style global</i>;</li>
+                    <li><code>&lt;strong <b>class="titulo-principal"</b></code> - usado para identificação e padronização para pré-definições em <strong>CSS</strong>;</li>
+                    <li><code>&lt;input <b><code>type=</code></b> - os atributos a seguir são exclusivos da tag <strong>input</strong>, na qual é usado para coletar entradas do usuário.
+                        <ul>
+                            <li><code><b>"text"</b></code> - usado para a coleta de texto;</li></li>
+                            <li><code><b>"number"</b></code> - usado para a coleta de valor numéricos;</li></li>
+                            <li><code><b>"color"</b></code> - usado para a coleta de cor;</li></li>
+                        </ul>
+                    </li>
+                    <li><code>&lt;img <b>src="imagem.jpg"</b></code> - usado para inserir imagem, pode ser um caminho interno ou url externo;</li>
+                    <li><code>&lt;img <b>width="250"</b></code> - usado para alterar (proporcionalmente) o tamanho da imagem, usando o valor da largura como parâmetro de definição;</li>
+                </ul>
+            </p>
+        </section>
+        <section>
+            <h2 id="texto">Textos</h2>
+            <p>As principais tags de textos são apresentadas a seguir:</p>
+            <ul>
+                <li><code><b> &lt;u&gt; </b></code> - Usado para deixar o texto <u>sublinhado</u>;</li>
+                <li><code><b> &lt;i&gt; </b></code> - Usado para deixar o texto em <i>itálico</i>;</li>
+                <li><code><b> &lt;b&gt; </b></code> - Usado para deixar o texto em <b>negrito</b></li>
+                <li><code><b> &lt;strong&gt; </b></code> - Também deixar em <strong>negrito</strong> porém mais semântico;</li>
+                <li><code><b> &lt;h1&gt; </b></code> - Usado para título principal;</li>
+                <li><code><b> &lt;h2&gt; </b></code> - Usado para título secundário, pode se usar <i>h3</i>, <i>h4</i> e assim em diante para subtítulos;</li>
+                <li><code><b> &lt;p&gt; </b></code> - Usado para declarar um parágrafo;</li>
+                <li><code><b> &lt;q&gt; </b></code> - Usado para declarar <q>citação curta</q>;</li>
+                <li><code><b> &lt;blockquote&gt; </b></code> - Usado para declarar citação longa;</li>
+                <li><code><b> &lt;mark&gt; </b></code> - Usado para <mark>destacar</mark> como se fosse um marca-texto;</li>
+                <li><code><b> &lt;sup&gt; </b></code> - Usado para sobrescrita, exemplo: e<sup>x</sup>;</li>
+                <li><code><b> &lt;sub&gt; </b></code> - usado para subscrita, exemplo: H<sub>2</sub>O.</li>
+            </ul>
+        </section>
+        <section>
+            <h2 id="lista">Listas</h2>
+            <h3>Lista Ordenada</h3>
+            <p><strong><i><font lang="en">Ordened list</font></i></strong>, ou listas ordenadas, são declaradas com &lt;ol&gt; e dentro dele são inserido os seus <strong><i><font lang="en">list itens</font></i></strong> itens, ou itens da listas, &lt;li&gt;<br>Exemplo:</p>
+            <p><code><pre>&lt;ol&gt;</br>    &lt;li&gt;Um item&lt;/li&gt;</br>    &lt;li&gt;Mais um item&lt;/li&gt;</br>    &lt;li&gt;Outro item&lt;/li&gt;</br>&lt;/ol&gt;</pre></code></p>
+            <ol>
+                <li>Um item</li>
+                <li>Mais um item</li>
+                <li>Outro item</li>
+            </ol>
+            <h3>Lista Não Ordenada</h3>
+            <p><strong><i><font lang="en">Unordened list</font></i></strong>, ou lista não ordenada, são declaradas com &lt;ul&gt; e dentro dele são inserido os seus <strong><i><font lang="en">list itens</font></i></strong> itens, ou itens da listas, &lt;li&gt;<br>Exemplo:</p>
+            <p><code><pre>&lt;ul&gt;</br>    &lt;li&gt;Um item&lt;/li&gt;</br>    &lt;li&gt;Mais um item&lt;/li&gt;</br>    &lt;li&gt;Outro item&lt;/li&gt;</br>&lt;/ul&gt;</pre></code></p>
+            <ul>
+                <li>Um item</li>
+                <li>Mais um item</li>
+                <li>Outro item</li>
+            </ul>
+        </section>
+        <section>
+            <h2 id="a">Links</h2>
+            <p>Conhecidos também por <font lang="en"><i>anchor</i></font>, ou âncora, textos que, quando clicados, navegam através da página, para outra página do site ou para fora do site. Exemplo:</p>
+            <ul>
+                <li><code><b>&lt;a href="#nome-do-id"</b></code> - navega pela <b>própria página</b> para o elemento com o id declarado</li>
+                <li><code><b>&lt;a href="contatos.html"</b></code> - navega para <b>outra página</b> do mesmo site ou projeto</li>
+                <li><code><b>&lt;a href="http://dio.me"</b></code> - navega para uma <b> página externa</b></li>
+            </ul>
+            <p>Além da aplicação do atributo <i>href</i>, temos outros atributos principais:</p>
+            <ul>
+                <li><b><code>&lt;a title="Clique aqui para saber mais"</code></b> -  Ao passar o mouse por cima do elemento aparecerá um <font lang="en"><i>tooltip</i></font></li>
+                <li><b><code>&lt;a target=</code></b>
+                    <ul>
+                    <li><b><code>"_self"</code></b> - (padrão) usa aba atual para navegar ao novo endereço</li>
+                    <li><b><code>"_blank"</code></b> - abre uma nova aba para navegar ao novo endereço</li>
+                    </ul>
+                </li>
+            </ul>
+            <p>Boa prática: <code><font lang="en"><i>"_self"</i></font></code> é usado para navegar dentro do seu próprio site, enquanto o <code><font lang="en"><i>"_blank"</i></font></code> é usado quando o link direciona para fora do seu site. </p>
+        </section>
+        <section>
+            <h2 id="form">Formulário</h2>
+            <p>
+                <code><b>&lt;form&gt;</b></code> é usado para coletar informações do usuário, delimita (abraço) todos os demais elementos de formulários que serão apresentados posteriormente.</br>
+                Primeiro vamos apresentar seus principais atributos:
+            </p>
+            <ul>
+                <li>&lt;form <code><b>name</b>="signup"</code> - atribuído para orientar o javascript;</li>
+                <li>&lt;form <code><b>action</b>="http://meusite.com.br/signup"</code> - endereço do servidor que as informações do formulário irão;</li>
+                <li>
+                    &lt;form <code><b>method=</b></code>
+                    <ul>
+                        <li><code><b>"get"</b></code> - envia as informações através da própria url</li>
+                        <li><code><b>"post"</b></code> - envia as informações encapsuladas na body</li>
+                    </ul>
+                </li>
+                <li>&lt;form <code><b>autocomplete="on"</b></code> - caso <font lang="en"><i>"on"</i></font></code> o usuário pode salvar as credenciais, assim como se voltar para a páginas as informações estarão pré-preenchidas</li>
+                <li>&lt;form <code><b>on-alguma-coisa</b></code> - todas os atributos começados por <font lang="en"><i>"on"</i></font></code> são eventos;</li>
+                <li>&lt;form <code><b>onsubmit="alert('formulario enviado');"</b></code> - neste exemplo, quando dado o comando de enviar o formulário, executará o comando javascript descrito;</li>
+                <li>&lt;form <code><b>target</b></code> - similar ao link <code>&lt;a&gt;</code></li>
+            </ul>
+            </section>
+    </main>
+
+    <footer>
+        <p><small><del>Tá bom já, vou entregar assim mesmo</del><br>Em breve terminarei de revisar tudo que aprendi no curso e completarei aqui</small></p>
+    </footer>
 </body>
 </html>
