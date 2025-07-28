@@ -50,7 +50,7 @@ Olhando os parâmetros, temos os seguintes:
 * `Expiration` - Até que data expira o token, convém deixar pouco tempo, só da pessoa acessar mesmo 
 * `Scope` - Delimita as permissões do usuário (que acessar com esse token)  
 
-Por fim só clicar em <span style="background-color:green"> [ Generate token ]</span>, então irá gerar algo tipo `fjdksfjkdls_dfjskfhsdajknclaghdisfj` então só copiar o token e salvar ou enviar.
+Por fim só clicar em <span style="background-color:green; color:white;"> [ Generate token ]</span>, então irá gerar algo tipo `fjdksfjkdls_dfjskfhsdajknclaghdisfj` então só copiar o token e salvar ou enviar.
 
 #### 3.1.2 Usando o token
 
@@ -118,7 +118,7 @@ Como resultado vamos ter algo similar nas linhas de:
 2. Clique no seu `Perfil`
 3. Na aba lateral que apareceu, clique no [`⚙️ Setting`](https://github.com/settings/profile)
 4. Última opção do menu lateral: [`🔑 SSH and GPS keys`](https://github.com/settings/keys) 
-5. Clique em <span style="background-color:green"> [ New SSH key ]</span>
+5. Clique em <span style="background-color:green; color:white;"> [ New SSH key ]</span>
 
 Haverá 3 campos na página, preencha de forma similar:
 * **Title**:  'Meu PC que gerou a chave'
@@ -151,4 +151,69 @@ Caso queira clonar uma branch diferente da principal, basta passar como argument
 `git clone https://github.com/NWERICKSASAKI/repositorio-existente.git --branch nome-da-branch --single-branch`
 
 Para visualizar com quem o repositório local está conectado:  
-`git remote -v`
+`git remote -v`  
+Como resultado verá algo como `origin https://github.com/NWERICKSASAKI/repositorio-existente.git`
+
+## 5 Salvando Alterações no Repositório Local
+
+`git status` vai revelar quais arquivos não estão sendo rastreados e quais arquivos sofreram modificações.  
+
+`git add .` este comando adicionado **TODOS** os arquivos para serem rastreados, caso queira algum arquivo em específico só digitar o nome do arquivo no lugar do ponto.
+
+Caso queira retirar algum arquivo que foi adicionado ao stagging temos duas opções:  
+* `git reset bloco_senhas.txt`
+* `git restore --staged bloco_senhas.txt`
+
+Para commitar, ou seja, salvar as modificações no repositório local é realizado o comando abaixo, personalizando o cometário:
+`git commit -m"Fz algmas alterações relveantes"`
+
+Caso deseja substituir a última mensagem do commit você pode utilizar `git commit --amend -m"Fiz algumas alterações relevantes"`
+
+`git log` exibe o histórico dos nossos commits, por *hash*, *autor* e *data*.
+
+Se quiser algo mais resumido, tem a opção de usar `git reflog`
+
+
+## 6 Desfazendo alterações no Repositório Git
+
+Vamos supor que fizemos algumas ~~merdas~~ alterações e gostaríamos de  ~~dar rollback~~ voltar como estava antes.
+
+Localize qual commit gostaria de voltar olhando o `git log` e copir o hash:
+
+```
+commit f4f4a01ab1a0c197a0fe9e4cebfa344407f5e5be
+Author: Erick <erick_sasaki@hotmail.com>
+Date:   Fri Jul 18 09:37:10 2025 -0300
+
+    Nova função ta dando merda e corrigi parte dos bugs que deu
+
+commit 3ca2052885c8c7aa165abdf62f5dfa411b292bc1
+Author: Erick <erick_sasaki@hotmail.com>
+Date:   Mon Jun 30 10:47:38 2025 -0300
+
+    Comecei a colocar uma nova funcao
+
+commit 9f22ab3664556b6fb8637e3ef2a73a59b92540fe
+Author: Erick <erick_sasaki@hotmail.com>
+Date:   Mon Jun 16 11:54:30 2025 -0300
+
+    Tudo funcional!!
+```
+
+Vamos supor que queremos voltar ao estado do commit que estava *"Tudo funcional!!"* na qual o seu respectivo hash é `9f22ab3664556b6fb8637e3ef2a73a59b92540fe`.
+
+Temos 3 opçõs de voltar a esse git com base nesses 3 parâmetros seguido pelo hash:
+
+### 6.1 `git reset --soft`
+Volta ao estado do commit e:
+* **Não apaga** novos arquivos que não estavam presentes no momento do commit;
+* Novos arquivos modificões que estava trabalhando antes de dar reset estão ja **trackeado** (ja estarão dentro do `git add`).
+
+### 6.2 `git reset --mixed` (padrão)
+Volta ao estado do commit e:
+* **Não apaga** novos arquivos que não estavam presentes no momento do commit;
+* Novos arquivos modificões que estava trabalhando antes de dar reset estarão **untracked** (vai precidar dar `git add`).
+
+### 6.3 `git reset --hard` (padrão)
+Volta ao estado origianal do commit, isso inclui:
+* **Apagar** todos novos arquivos que não estavam presentes no momento do commit;
