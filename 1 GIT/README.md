@@ -260,4 +260,18 @@ O erro se refere justamente que há um conflito nas modificações feita por **B
 
 * `git pull` para baixar as alterações
 * O arquivo que está com conflito aparecerá modificado exibindo duas versões diferentes, no caso, basta **editar e salvar** como deverá ser a versão final correta, e dar um `git commit`.
-* por fim `git push` e conflito resolvido.
+* por fim `git push` e conflito resolvido.  
+
+Mas o que é o tal do `git pull`?
+
+### 9.1 git fetch + git merge = git pull
+
+O `git pull` é a junção dos comandos:
+* `git fetch` (baixa as aterações do repositório remoto) e 
+* `git merge` (mescla as branchs / alterações).
+
+Caso queira baixar o conteúdo remoto sem mesclar com a branch local, usar o `git fetch origin main`
+
+Para visualizar as diferenças entre as branchs, ou seja, o que foi modificado `git diff main origin/main`
+
+Para 
