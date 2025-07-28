@@ -217,3 +217,47 @@ Volta ao estado do commit e:
 ### 6.3 `git reset --hard` (padrão)
 Volta ao estado origianal do commit, isso inclui:
 * **Apagar** todos novos arquivos que não estavam presentes no momento do commit;
+
+
+## 7 Enviando e Baixando Alterações ao Repositório Remoto
+
+Vamos supor que você um projeto local e gostaria de criar um repositório no GitHub.
+
+Basta seguir os seguintes passos:
+* Crie um novo repositório no GitHub e copie o seu endereço;
+* Vá na pasta do seu projeto e dê `git init` → `git add .` → `git commit -m"Meu primeiro commit"`
+* Dê o comando a seguir com o link do GitHub `git remote add origin https://github.com/NWERICKSASAKI/novo_projeto.git` para conectar o repositório local ao remoto.
+* `git branch -m main` para renomear a branch atual para *main*
+* `git push -u origin main` para empurrar a nossa branch *main* à branch *origin* (remoto) e indicar através do `-u` ou `--set-upstream` que a branch *main* está ligada ao *origin/main* 
+* e quaisquer novas alterações commitadas, basta `git pull` para enviá-las ao repositório remoto.
+
+## 8 Trabalhando com Branches
+
+`git checkout -b nome_da_branch` este comando cria e já troca para esta nova branch.
+
+Para só trocar de branch, por exemplo, voltar à *main* → `git checkout main`  
+
+`git branch` lista todas as branches do repositório, o branch que estamos no momento é indicada com *   
+
+`git branch -v` mostra o último commit de cada branch  
+
+`git merge nome_da_branch` mescla a branch atual com a branch indicada.  
+
+`git branch -d nome_da_branch` deleta a branch mencionada
+
+
+## 9 Lidando com Conflitos
+
+Vamos supor que 2 pessoas estão trabalhando em um repositório no GitHub.
+
+**A** e **B**, a paritr de um mesmo commit no GitHub deram `git pull` ou clone e comeraçam a trabalhar nele.
+
+**A** realizou algumas alterações e já subiu com `git push`
+
+Porém logo depois **B** fez suas alterações no mesmo arquivo deu `git commit -m"comentarios de B"`,  foi tentar dar `git push origin main` porém retornou um erro!
+
+O erro se refere justamente que há um conflito nas modificações feita por **B** em relação a versão que está no GitHub subidas por **A** e então será necessários tratar os conflitos:  
+
+* `git pull` para baixar as alterações
+* O arquivo que está com conflito aparecerá modificado exibindo duas versões diferentes, no caso, basta **editar e salvar** como deverá ser a versão final correta, e dar um `git commit`.
+* por fim `git push` e conflito resolvido.
