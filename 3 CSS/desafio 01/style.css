@@ -1,0 +1,149 @@
+@import url('./reset.css');
+@import url('https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100..900;1,100..900&display=swap');
+
+*{
+    font-family: "Raleway";
+    text-align: center;
+    font-weight: normal;
+}
+
+body{
+    background-color: black;
+    color: white;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.banner{
+    margin-top: 5vh;
+    background-image:
+        url("./assets/images/banner.png") ,
+        linear-gradient(black,rgb(0, 78, 96),black);
+    background-size: contain;
+    background-blend-mode: normal;
+    padding: 5vh 0;
+    border-bottom: 1px solid #33A8d8;
+}
+
+
+.banner-content{
+    margin: auto;
+    width: 66%;
+    font-weight: normal;
+}
+
+.banner-content img{
+    width: 25vw;
+    display: block;
+    object-fit: scale-down;
+    margin: 0 auto;
+}
+
+.banner-content h1{
+    margin-top: 5vh;
+    text-transform: uppercase;
+    font-weight: 900;
+    font-size: 2.5rem;
+    background-image: linear-gradient(#33a8d8,#1472b7);
+    color: transparent;
+    background-clip: text;
+    -webkit-background-clip: text;
+}
+
+.banner-content p{
+    width: auto;
+    font-size: 1.3rem;
+    margin-bottom: 3vh;
+}
+
+
+.banner-content button{
+    color: transparent;
+    font-size: 1rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    background-image: linear-gradient(#33a8d8,#1472b7);
+    background-clip: text;
+    -webkit-background-clip: text;
+    border: 2px solid;
+    border-image-source: linear-gradient(#33a8d8,#1472b7);
+    border-image-slice: 1;
+    border-image-repeat: repeat;
+    padding: 1.5vh 3vh;
+    letter-spacing: 0.5vw;
+}
+
+h2{
+    margin-top: 10vh;
+    text-transform: uppercase;
+    font-weight: 700;
+    font-size: 2rem;
+    letter-spacing: 0.5vw;
+    color: transparent;
+    background-image: linear-gradient(#33a8d8,#1472b7);
+    background-clip: text;
+    -webkit-background-clip: text;
+    margin-bottom: 3vh;
+}
+
+main{
+    font-size: 1rem;
+    margin-bottom: 6vh;
+
+}
+
+#course-content{
+    padding-bottom:10vh;
+    border-bottom: 1px solid #33A8d8;
+}
+
+.module{
+    margin: 2vh auto;
+    padding: 1.5vh;
+    width: 50vw;
+    border: 1px solid #33A8d8;
+    border-radius: 5%/50%;
+    background-color: #252525;
+    box-shadow: inset -5px 5px 5px black;
+}
+
+.module span{
+    color: #33A8d8;
+}
+
+p{
+    margin: auto;
+    width: 85vw;
+    font-size: 1rem;
+}
+
+#transform-world{
+    padding: 30vh 0;
+    background-image: url('./assets/images/woman-code.png');
+    background-position: left;
+    background-size: cover;
+    background-attachment: fixed;
+    border-bottom: 1px solid #33A8d8;    
+}
+
+#transform-world p{
+    width: 30%;
+    margin-left: 20%;
+    text-align: left;
+    text-transform: lowercase;
+    font-size: 2.5rem;
+    font-weight: 900;
+    text-shadow: 3px 3px 0px #33a8d8;
+}
+
+footer{
+    padding: 6vh 0;
+    border-top: 1px solid #33A8d8;
+    background-image: linear-gradient(black,#33a8d833);
+    border-bottom: 0;
+}
+
+a{
+    color: #33A8d8;
+    text-decoration: none;
+}
