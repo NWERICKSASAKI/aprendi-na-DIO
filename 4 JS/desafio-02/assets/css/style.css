@@ -7,8 +7,20 @@
     font-style: normal;
 }
 
+:root {
+    --text-color: white;
+    --title-color: #34B8ED;
+    --actived-color: #d6536E;
+    --secundary-color: #5B64BF;
+    --color: #F7556D;
+}
+
+
 *{
-    color: gray;
+    padding: 0;
+    margin: 0;
+    color: purple;
+    box-sizing: border-box;
 }
 
 body{
@@ -16,18 +28,26 @@ body{
 }
 
 header{
+    height: 90vh;
+    width: 100%;
+    /* background-image: linear-gradient(to top,#060606, black);
+    background-color: black; */
+    background-color:black;
+
+}
+
+.logo_pagina{
+    height: 100%;
+    padding: 40vh 0;
+    align-self: center;
     display: flex;
     flex-direction: column;
-    padding: 5vh;
-    background-image: linear-gradient(to top,#060606, black);
-    background-color: black;
     align-items: center;
-    border-bottom: 1px solid #282828;
 }
 
 .logo_pagina img{
     flex-direction: column;
-    max-width: 156px;
+    max-width: 80px;
     align-items: center;
     mix-blend-mode: normal;
 }
@@ -47,16 +67,50 @@ header{
 }
 
 .logo_text{
-    margin: -0.4rem 0;
+    margin: -0.4rem 0 0 0;
     text-align: center;
     z-index: 1;
     font-size: 1rem;
     height: auto;
     position: relative;
-    top: -0.7rem
 }
 
-h2{
+nav#top_menu{
+    background-color: black;
+    color: gray;
+    position: sticky;
+    top:0;
+}
+
+.menu{
+    padding: 1vh 10vw;
+    height: 100%;
+    justify-self: flex-end;
+    display: flex;
+    width: 100%;
+    justify-content: space-evenly;
+    align-items: center;
+    border-bottom: solid gray 1px;
+}
+
+.menu .menu_itens{
+    list-style-type: none;
+    padding: 0;
+    text-decoration: underline solid  1px;
+    color: var(--secundary-color);
+    cursor: pointer;
+}
+
+.menu .menu_itens :active{
+    list-style-type: none;
+    padding: 0;
+    text-decoration: underline solid  1px;
+    color: var(--actived-color);
+    cursor: pointer;
+}
+
+
+.titulo_sombreado{
     margin-top: 1rem;
     font-family: roboto;
     font-size: 1rem;
@@ -68,3 +122,25 @@ h2{
     width: 7rem;
 }
 
+
+#img_fundo_santander{
+    width: 100%;
+    height: 25vh;
+    background-image: url('../img/santander.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    filter: blur(2px);
+    -webkit-filter: blur(2px);
+
+}
+
+.title_in_img{
+    padding: 20px;
+    position: absolute;
+    transform: translate(-50%, -50%);
+    left: 50%;
+    /* top:50px; */
+    color: black;
+    z-index: 2;
+}
