@@ -1,67 +1,42 @@
 <!DOCTYPE html>
 <html>
+
+  <!-- 
+    Referencias:
+    https://dribbble.com
+    https://webflow.com
+    https://www.behance.net
+    https://www.awwwards.com/
+
+    mockup
+  -->
+
   <head>
     <title>Aprendi na DIO.me</title>
-    <style>
-      @import url('https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Raleway:ital,wght@0,100..900;1,100..900&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
-
-      *{
-        margin: 0;
-        padding: 0;
-      }
-
-      body{
-          background-color: black;
-      }
-
-      header{
-        padding: 5vh;
-        display: flex;
-        flex-direction: column;
-        background-image: linear-gradient(to top,#060606, black);
-        background-color: black;
-        align-items: center;
-        border-bottom: 1px solid #282828;
-      }
-
-      header img{
-        width: 20vh;
-        mix-blend-mode: normal;
-      }
-
-      h1{
-        font-family: roboto;
-        font-weight: bold;
-        text-transform: LOWERcase;
-        color: transparent;
-        text-shadow: -3px -3px 1px black;
-        background-image: linear-gradient(to right ,rgb(0, 174, 255),rgb(109, 90, 255), rgb(255, 60, 128), rgb(255, 60, 128));
-        -webkit-background-clip: text;
-        margin-bottom: -1rem;
-        width: 10rem;
-        text-align: right;
-        z-index: 1;
-      }
-
-      h2{
-        margin-top: 1rem;
-        font-family: roboto;
-        font-size: 1rem;
-        text-transform: lowercase;
-        color: white;
-        text-shadow: 3px 3px 3px gray;
-        -webkit-background-clip: text;
-        text-align: right;
-        width: 7rem;
-        }
-
-    </style>
+    <link rel="stylesheet" href="./assets/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css"
+        integrity="sha512-NhSC1YmyruXifcj/KFRWoC561YpHpc5Jtzgvbuzx5VozKpWvQ+4nXhPdFgmx8xqexRcpAglTj9sIBWINXa8x5w=="
+        crossorigin="anonymous"
+        referrerpolicy="no-referrer" />
   </head>
+
   <body>
+
     <header>
-      <h1>o que aprendi na</h1>
-      <img src="https://hermes.dio.me/articles/cover/364fb700-4c6f-482b-91fe-6c66b31ae8a1.jpg">
+      <div class="logo_pagina">
+        <img src="https://hermes.dio.me/articles/cover/364fb700-4c6f-482b-91fe-6c66b31ae8a1.jpg">
+        <h1 class="dio_color logo_text"><span id="o">⬤</span> que aprendi_</h1>
+      </div>
+      <nav>
+        <ul>
+          <li>Bootcamp</li>
+          <li>Projetos</li>
+          <li>Resumos</li>
+          <li>Sobre mim</li>
+        </ul>
+      </nav>
       <h2>Meus projetos e resumos</h2>
+
     </header>
 
     <main>
@@ -69,5 +44,6 @@
     </main>
 
     <footer></footer>
+
   </body>
 </html>

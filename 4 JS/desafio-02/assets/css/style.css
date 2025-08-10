@@ -1,0 +1,70 @@
+@import url('https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Raleway:ital,wght@0,100..900;1,100..900&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
+
+@font-face {
+    font-family: neue-machina-ultra-bold;
+    src: url('../fonts/neue-machina-ultrabold.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+*{
+    color: gray;
+}
+
+body{
+    background-color: black;
+}
+
+header{
+    display: flex;
+    flex-direction: column;
+    padding: 5vh;
+    background-image: linear-gradient(to top,#060606, black);
+    background-color: black;
+    align-items: center;
+    border-bottom: 1px solid #282828;
+}
+
+.logo_pagina img{
+    flex-direction: column;
+    max-width: 156px;
+    align-items: center;
+    mix-blend-mode: normal;
+}
+
+.logo_pagina #o{
+    font-size: 0.7rem;
+    color: inherit;
+}
+
+.dio_color{
+    font-family: neue-machina-ultra-bold;
+    font-size: 1rem;
+    text-transform: LOWERcase;
+    color: transparent;
+    background-image: linear-gradient(to right , #34B8ED, #5B64BF, #F7556D,  #d6536E);
+    -webkit-background-clip: text;
+}
+
+.logo_text{
+    margin: -0.4rem 0;
+    text-align: center;
+    z-index: 1;
+    font-size: 1rem;
+    height: auto;
+    position: relative;
+    top: -0.7rem
+}
+
+h2{
+    margin-top: 1rem;
+    font-family: roboto;
+    font-size: 1rem;
+    text-transform: lowercase;
+    color: white;
+    text-shadow: 3px 3px 3px gray;
+    -webkit-background-clip: text;
+    text-align: right;
+    width: 7rem;
+}
+
