@@ -1,4 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Raleway:ital,wght@0,100..900;1,100..900&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100..900;1,100..900&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
+
 
 @font-face {
     font-family: neue-machina-ultra-bold;
@@ -21,6 +23,7 @@
     margin: 0;
     color: purple;
     box-sizing: border-box;
+    font-family: 'Roboto';
 }
 
 body{
@@ -75,11 +78,13 @@ header{
     position: relative;
 }
 
-nav#top_menu{
+#top_menu{
     background-color: black;
-    color: gray;
     position: sticky;
     top:0;
+    z-index: 10;
+    padding: .5rem 0 1rem 0;
+    border-bottom: solid #5B64BF 2px;
 }
 
 .menu{
@@ -90,14 +95,14 @@ nav#top_menu{
     width: 100%;
     justify-content: space-evenly;
     align-items: center;
-    border-bottom: solid gray 1px;
+    font-family: neue-machina-ultra-bold, Courier, monospace;
 }
 
 .menu .menu_itens{
     list-style-type: none;
     padding: 0;
-    text-decoration: underline solid  1px;
     color: var(--secundary-color);
+    font-weight: bold;
     cursor: pointer;
 }
 
@@ -125,22 +130,74 @@ nav#top_menu{
 
 #img_fundo_santander{
     width: 100%;
-    height: 25vh;
+    height: 33vh;
     background-image: url('../img/santander.jpg');
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
     filter: blur(2px);
     -webkit-filter: blur(2px);
-
+    opacity: 0.5;
 }
 
 .title_in_img{
+    display: inline;
     padding: 20px;
-    position: absolute;
-    transform: translate(-50%, -50%);
-    left: 50%;
+    width: 20%;
+    position: relative;
+    top: -20vh;
     /* top:50px; */
-    color: black;
+    color: #34B8ED;
     z-index: 2;
+    font-family: neue-machina-ultra-bold, Courier, monospace;
+    text-shadow: #5B64BF 3px 3px ;
+}
+
+h3{
+    color: #34B8ED;
+    padding:1rem;
+    text-decoration: underline solid 1px;
+    text-underline-offset: 0.65rem;
+}
+
+h4, h5{
+    color: #34B8ED;
+    padding:1rem;
+
+}
+
+p{
+    color: #5B64BF;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    padding-bottom: 1rem;
+    text-align: justify;
+}
+
+section.sessao{
+    padding-bottom: 10vh;
+    border-bottom: solid #5B64BF 1px;
+}
+
+
+section.subsessao{
+    background-color: rgb(0, 26, 43);
+    border-radius: 5vw;
+    margin: 1rem;
+}
+
+#img_fundo_projetos{
+    width: 100%;
+    height: 33vh;
+    background-image: url('../img/projetos.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    filter: blur(2px);
+    -webkit-filter: blur(2px);
+    opacity: 0.5;
+}
+
+embed{
+    background-color: white;
 }
