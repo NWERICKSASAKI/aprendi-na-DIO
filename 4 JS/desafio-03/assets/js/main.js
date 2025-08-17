@@ -63,10 +63,10 @@ function covertPokemonTypesToLi(pokemonTypes){
 
 const pokemonList = document.getElementById('pokemonList')
 const loadMoreButton = document.getElementById('loadMoreButton')
-const limit = 5;
+const limit = 12;
 let offset = 0;
 
-const maxRecords = 11; // pra remover o botao de carregar mais (ficar só na 1° geração)
+const maxRecords = 251; // pra remover o botao de carregar mais (ficar só na 1° geração)
 
 
 pokemonList.addEventListener('click', (event) => {
