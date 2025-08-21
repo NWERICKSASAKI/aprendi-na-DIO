@@ -1,3 +1,8 @@
+for (let index = 0; index < array.length; index++) {
+    const element = array[index];
+    
+}
+
 let lista = ['ana','bob','caio','dio']
 
 // FOREACH
