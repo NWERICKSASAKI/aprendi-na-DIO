@@ -21,7 +21,7 @@
 *{
     padding: 0;
     margin: 0;
-    color: purple;
+    color: #5B64BF;
     box-sizing: border-box;
     font-family: 'Roboto';
 }
@@ -33,9 +33,7 @@ body{
 header{
     height: 90vh;
     width: 100%;
-    /* background-image: linear-gradient(to top,#060606, black);
-    background-color: black; */
-    background-color:black;
+    background-image: linear-gradient(to top, #5B64BF, black, black);
 
 }
 
@@ -79,16 +77,15 @@ header{
 }
 
 #top_menu{
-    background-color: black;
+    background-color: #5B64BF;
     position: sticky;
     top:0;
     z-index: 10;
     padding: .5rem 0 1rem 0;
-    border-bottom: solid #5B64BF 2px;
 }
 
 .menu{
-    padding: 1vh 10vw;
+    padding: 01vh 5vw;
     height: 100%;
     justify-self: flex-end;
     display: flex;
@@ -100,10 +97,12 @@ header{
 
 .menu .menu_itens{
     list-style-type: none;
-    padding: 0;
+    justify-content: space-between;
     color: var(--secundary-color);
+    color: white;
     font-weight: bold;
     cursor: pointer;
+    font-size: 3.5vw;
 }
 
 .menu .menu_itens :active{
@@ -121,10 +120,9 @@ header{
     font-size: 1rem;
     text-transform: lowercase;
     color: white;
-    text-shadow: 3px 3px 3px gray;
+    text-shadow: 2px 2px 2px gray;
     -webkit-background-clip: text;
     text-align: right;
-    width: 7rem;
 }
 
 
@@ -141,49 +139,59 @@ header{
 }
 
 .title_in_img{
-    display: inline;
-    padding: 20px;
-    width: 20%;
+    display: block;
+    width: 10rem;
+    padding-left: 2rem;
     position: relative;
     top: -20vh;
     /* top:50px; */
-    color: #34B8ED;
+    color: white;
     z-index: 2;
     font-family: neue-machina-ultra-bold, Courier, monospace;
-    text-shadow: #5B64BF 3px 3px ;
+    text-shadow: #34B8ED 3px 3px ;
+}
+
+h3, h4, h5{
+    color: white;
+    padding-bottom:1rem;
+    text-shadow: 0 0 .5rem #34B8ED;
+
 }
 
 h3{
-    color: #34B8ED;
-    padding:1rem;
-    text-decoration: underline solid 1px;
+    text-decoration: underline solid 1px #34B8ED;
     text-underline-offset: 0.65rem;
 }
 
-h4, h5{
-    color: #34B8ED;
-    padding:1rem;
-
+h5{
+    padding-bottom:.25rem;
 }
 
 p{
-    color: #5B64BF;
-    padding-left: 1rem;
+    color: #34B8ED;
     padding-right: 1rem;
-    padding-bottom: 1rem;
+    padding-bottom: 1.5rem;
     text-align: justify;
 }
 
 section.sessao{
+    padding-left: 1rem;
+    padding-top: 1rem;
     padding-bottom: 10vh;
     border-bottom: solid #5B64BF 1px;
+
 }
 
 
 section.subsessao{
-    background-color: rgb(0, 26, 43);
+    background-color: rgb(255, 255, 255, 0.15);
     border-radius: 5vw;
     margin: 1rem;
+    padding: 1rem;
+    margin-bottom: 2rem;
+}
+.subsessao-body{
+    padding: 0 1rem 1rem 1rem;
 }
 
 #img_fundo_projetos{
@@ -198,6 +206,43 @@ section.subsessao{
     opacity: 0.5;
 }
 
-embed{
+.desafioEntrega{
+    cursor: pointer;
+}
+
+a.embed{
+    display: inline-block;
+    width: 100%;
+    padding: .25rem;
+    padding-bottom: 0;
+    border-radius: 1rem;
+    border-image-outset: 2rem;
     background-color: white;
+    margin-bottom: 1rem;
+}
+
+embed{
+    width: 100%;
+    background-color: white;
+    pointer-events:none;
+    border-radius: 1rem;
+    padding: .5rem;
+    border: 4px dashed #34B8ED;
+    height: 45vh;
+}
+
+.multiline{
+    white-space-collapse: preserve;
+}
+
+code{
+    border-radius: 1rem;
+    font-family: monospace;
+    color: yellow;
+    padding: 1rem;
+    display: block;
+    white-space-collapse: preserve;
+    background-color: black;
+    max-height: 45vh;
+    overflow: auto;
 }
