@@ -5,37 +5,38 @@
 }
 
 body{
+    box-sizing: content-box;
+    width: 842px;
+    height: 1123px;
     position: absolute;
-    width: 100vw;
     display: flex;
+    justify-self: center ;
     background-color: dimgrey;
     justify-content: center;
+
 }
 
 aside{
+    padding-top: 10rem;
     display: flex;
     flex-direction: column;
     align-items: center;
     color: white;
     width: 30%;
-    height: 120vh;
     background-color: midnightblue;
     box-shadow: -5px 0 10px black;
 }
 
 aside img{
-    margin: 5vh 0 5vh 0;
-    width: 10vw;
-    height: 10vw;
+    width: 20vw;
     border-radius: 50%;
-    padding: 10px;
     background-color: midnightblue;
     border: 5px solid white;
 
 }
 
 main{
-    width: 60%;
+    width: 70%;
     background-color: gainsboro;
     box-shadow: 5px 0 10px black;
 }
