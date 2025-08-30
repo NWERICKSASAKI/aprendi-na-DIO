@@ -1,42 +1,166 @@
+@import url('https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100..900;1,100..900&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
+
+
 *{
+    font-family: 'Roboto', Courier, monospace;
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    text-decoration: none;
+    list-style: none;
 }
 
 body{
-    box-sizing: content-box;
+    background-color: dimgrey;
+}
+
+#paper{
+    margin: auto;
     width: 842px;
     height: 1123px;
-    position: absolute;
     display: flex;
-    justify-self: center ;
-    background-color: dimgrey;
-    justify-content: center;
+    box-shadow: -5px 0 10px black, 5px 0 10px black;
+    background-image: url('https://unblast.com/wp-content/uploads/2022/01/Paper-Texture-3-1024x768.jpg'), url('https://unblast.com/wp-content/uploads/2022/01/Paper-Texture-7-1024x768.jpg');
+    background-size: cover;
+    background-color: rgba(255,255,255,0.4);
+    background-blend-mode: lighten;
+}
+
+#left-margin{
+    width: 50px;
+    background-color: white;
 
 }
 
 aside{
-    padding-top: 10rem;
+    margin-top: 50px;
+    margin-left: 50px;
     display: flex;
     flex-direction: column;
     align-items: center;
     color: white;
-    width: 30%;
-    background-color: midnightblue;
-    box-shadow: -5px 0 10px black;
+    width: 35%;
 }
 
-aside img{
-    width: 20vw;
+#profile-pic{
+    box-sizing: border-box;
+    align-self: center;
+    width: 100%;
     border-radius: 50%;
-    background-color: midnightblue;
-    border: 5px solid white;
+    border: 3px solid  rgb(4, 46, 95);
+    mix-blend-mode: multiply;
+}
 
+#profile-white-circle{
+    width: 100%;
+    box-sizing: content-box;
+    justify-self: center;
+    border-radius: 50%;
+    border: 6px solid white;
+    z-index: 2;
+}
+
+#my-info{
+    height: 100%;
+    width: 100%;
+    margin-top: -120px;
+    padding: 145px 35px 0 35px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    background-image: linear-gradient(rgb(4, 46, 95), rgb(19, 84, 158));
+    z-index: 1;
+}
+
+i{
+    margin-right: .25em;
+}
+
+section{
+    margin-bottom: 40px;
+}
+
+h2{
+    margin-bottom: 10px;
+    font-weight: bold;
+    font-size: 20px;
+    color: white;
+}
+
+p{
+    font-size: 12px;
+    font-weight: normal;
+    font-family: 'Raleway', Courier, monospace;
+    text-align: justify;
+    color: lightblue;
+}
+
+ul{
+    margin-left: 4px;
+}
+
+li{
+    font-size: 14px;
+    padding-top: 10px;
+    font-weight: normal;
+    font-family: 'Raleway', Courier, monospace;
+    text-align: justify;
+    color: lightblue;
+}
+
+a{
+    cursor: pointer;
+}
+
+a:hover{
+    color: white;
 }
 
 main{
-    width: 70%;
-    background-color: gainsboro;
-    box-shadow: 5px 0 10px black;
+    margin-left: 10px;
+    width: 65%;
+}
+
+h1, h1 span{
+    font-size: 70px;
+    color: transparent;
+    -webkit-background-clip: text;
+    line-height: 60px;
+    font-weight: bold;
+}
+
+.name__container{
+    margin-left: 15px;
+    margin-top: 160px;
+    position: relative;
+}
+
+#n1{
+    background-image: linear-gradient(90deg, rgb(4, 46, 95),#0C4280);
+    position: relative;
+    bottom: 10px;
+}
+#n2{
+    color: #0C4280;
+    position: absolute;
+    top: -28px;
+    font-size: 20px;
+    left: 200px;
+}
+#n3{
+    color: #0C4280;
+    position: absolute;
+    left: 160px;
+    top: 28px;
+    font-size: 20px;    
+}
+#n4{
+    background-image: linear-gradient(90deg,#0C4280, rgb(19, 84, 158));
+    position: relative;
+    top: 10px;
+    left: 10px;
+}
+
+.debug{
+    border: 2px solid red;
 }
