@@ -8,7 +8,7 @@
   "estado-civil": "Solteiro & Noivo",
   "disponibilidade-viagem": "Disponívelpara Viagens",
   "contato":{
-    "celular": "(11) 9 4036-0668",
+    "celular": "(11) 9 4036 - 0668",
     "email": "erick_sasaki@hotmail.com",
     "site": "",
     "linkedin": "https://www.linkedin.com/in/erick-sasaki-432498149/",
@@ -40,7 +40,7 @@
       "icone":"<i class=\"fa-solid fa-user-group\"></i>"
     }
   ],
-  "experiencia":[
+  "experiencias":[
     {
       "cargo":"Operador de Sistema / Suporte N1 N2",
       "icone":"<i class=\"fa-solid fa-network-wired\"></i>",
@@ -67,6 +67,26 @@
       "empresa":"W-Energy",
       "descricao-atividades":"lorem...",
       "hard-skills":["monitoração","excel","vba","autohotkey"]
+    }
+  ],
+  "formacoes":[
+    {
+      "titulo":"Gestão Empresarial",
+      "icone":"<i class=\"fa-solid fa-store\"></i>",
+      "data-inicio":"2025",
+      "data-fim":"2025",
+      "tipo":"Pós-Graduação",
+      "instituicao":"Uninter",
+      "situacao":"Concluído"
+    },
+    {
+      "titulo":"Engenharia de Energia",
+      "icone":"<i class=\"fa-solid fa-solar-panel\">",
+      "data-inicio":"2019",
+      "data-fim":"2013",
+      "tipo":"Graduação",
+      "instituicao":"Universidade Federal do Pampa",
+      "situacao":"Concluído"
     }
   ],
   "certificacoes":[

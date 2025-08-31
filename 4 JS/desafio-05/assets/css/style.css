@@ -118,6 +118,12 @@ li{
     color: lightblue;
 }
 
+ul#contato li{
+    display: grid;
+    grid-template-columns: 15px 170px;
+    column-gap: 15px;
+}
+
 aside ul li i{
     margin-right: 11px;
 }
@@ -125,6 +131,7 @@ aside ul li i{
 
 a{
     cursor: pointer;
+    color: inherit;
 }
 
 a:hover{
