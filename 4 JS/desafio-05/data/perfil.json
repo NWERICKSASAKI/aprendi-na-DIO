@@ -64,7 +64,7 @@
       "icone":"<i class=\"fa-solid fa-magnifying-glass-chart\"></i>",
       "data-inicio":"00/00/0000",
       "data-fim":"00/00/0000",
-      "empresa":"W-Energy",
+      "empresa":"W-Energy | Economia de Água e Energia",
       "descricao-atividades":"lorem...",
       "hard-skills":["monitoração","excel","vba","autohotkey"]
     }
@@ -81,7 +81,7 @@
     },
     {
       "titulo":"Engenharia de Energia",
-      "icone":"<i class=\"fa-solid fa-solar-panel\">",
+      "icone":"<i class=\"fa-solid fa-solar-panel\"></i>",
       "data-inicio":"2019",
       "data-fim":"2013",
       "tipo":"Graduação",

@@ -86,25 +86,43 @@ async function addSoftSkills(profile){
 
 async function addExperiencias(profile){
     const lista = profile.experiencias;
-    const htmlParaAcrescentar = ''
+    let htmlParaAcrescentar = ''
     lista.forEach(info => {
 
         const htmlString =
         `<li>
             <h3>${info.icone}${info.cargo}</h3>
             <p>
-                ${info['data-inicio']} - ${info['data-fim']}
+                <span class="empresa">${info.empresa}</span>
                 <br>
-                <span class="empresa>${info.empresa}</span>
-                <div class="maisInfo">
-                    ${info["descricao-atividade"]}
-                </div>
+                ${info['data-inicio']} - ${info['data-fim']}
             </p>
         </li>`
         htmlParaAcrescentar += htmlString
 
     });
-    state.experiencias.innerHTML = htmlString;
+    state.experiencias.innerHTML = htmlParaAcrescentar;
+}
+
+
+async function addFormacoes(profile){
+    const lista = profile.formacoes;
+    let htmlParaAcrescentar = ''
+    lista.forEach(info => {
+
+        const htmlString =
+        `<li>
+            <h3>${info.icone}${info.titulo}</h3>
+            <p>
+                <span class="ano-termino">${info["data-fim"]}</span>
+                <span class="tipo">${info.tipo}</span>
+                <span class="instituicao">${info.instituicao}</span>
+            </p>
+        </li>`
+        htmlParaAcrescentar += htmlString
+
+    });
+    state.experiencias.innerHTML = htmlParaAcrescentar;
 }
 
 
@@ -114,6 +132,7 @@ async function init(){
     addContato(profile);
     addSoftSkills(profile);
     addExperiencias(profile);
+    addFormacoes(profile);
 }
 
 
