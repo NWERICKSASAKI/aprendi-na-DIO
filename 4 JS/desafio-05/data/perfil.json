@@ -80,6 +80,15 @@
       "situacao":"Concluído"
     },
     {
+      "titulo":"Engenharia da Computação",
+      "icone":"<i class=\"fa-solid fa-computer\"></i>",
+      "data-inicio":"2025",
+      "data-fim":"2024",
+      "tipo":"Pós-Graduação",
+      "instituicao":"Uninter",
+      "situacao":"Concluído"
+    },
+    {
       "titulo":"Engenharia de Energia",
       "icone":"<i class=\"fa-solid fa-solar-panel\"></i>",
       "data-inicio":"2019",
@@ -113,7 +122,7 @@
     {
       "titulo":"Santander Coders 2023 - Engenharia de Dados",
       "icone":"<i class=\"fa-solid fa-code\"></i>",
-      "certificadora":"ADA",
+      "certificadora":"ADA Tech",
       "data-conclusao":"02/12/2023",
       "data-inicio":"",
       "carga-horaria":"324 horas",

@@ -122,7 +122,28 @@ async function addFormacoes(profile){
         htmlParaAcrescentar += htmlString
 
     });
-    state.experiencias.innerHTML = htmlParaAcrescentar;
+    state.formacoes.innerHTML = htmlParaAcrescentar;
+}
+
+
+async function addCertificacoes(profile){
+    const lista = profile.certificacoes;
+    let htmlParaAcrescentar = ''
+    lista.forEach(info => {
+
+        const htmlString =
+        `<li>
+            <h3>${info.icone}${info.titulo}</h3>
+            <p>
+                <span class="ano-termino">${info["data-conclusao"]}</span>
+                <span><b>${info.certificadora}</b></span>
+                <span>${info["carga-horaria"]}</span>
+            </p>
+        </li>`
+        htmlParaAcrescentar += htmlString
+
+    });
+    state.certificacoes.innerHTML = htmlParaAcrescentar;
 }
 
 
@@ -133,6 +154,7 @@ async function init(){
     addSoftSkills(profile);
     addExperiencias(profile);
     addFormacoes(profile);
+    addCertificacoes(profile);
 }
 
 
