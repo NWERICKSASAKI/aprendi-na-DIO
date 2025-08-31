@@ -32,6 +32,7 @@ async function substituirInformacoes(profile) {
    state.idade.textContent = profile.idade;
    state.estadoCivil.textContent = profile["estado-civil"];
    state.disponibilidadeViagem.textContent = profile["disponibilidade-viagem"];
+   state.contato.email.textContent = profile.contato.celular;
 }
 
 async function init(){
