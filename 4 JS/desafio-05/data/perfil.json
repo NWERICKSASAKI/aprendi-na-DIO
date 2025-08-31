@@ -1,72 +1,105 @@
 {
-  "name": "Erick E M Sasaki",
-  "photo": "https://avatars.githubusercontent.com/u/65679096?v=4",
-  "job": "Suporte n1/n2",
-  "location": "São Paulo - SP",
-  "phone": "(11) 9 4036-0668",
-  "email": "erick_sasaki@hotmail.com",
-  "skills": {
-    "hardSkills": [
-      {
-        "name": "Python",
-        "logo": ""
-      },
-      {
-        "name": "AutoHotKey",
-        "logo": ""
-      },
-      {
-        "name": "HTML",
-        "logo": ""
-      },
-      {
-        "name": "CSS",
-        "logo": ""
-      },
-      {
-        "name": "JavaScript",
-        "logo": ""
-      }
-    ],
-    "softSkills": [
-      "Empatia",
-      "Adaptabilidade",
-      "Trabalho em equipe",
-      "Flexibilidade",
-      "Organização"
-    ]
+  "nome": "Erick Eidi Miura Sasaki",
+  "foto": "https://avatars.githubusercontent.com/u/65679096?v=4",
+  "sobre-mim": "lorem ",
+  "titulo": "Suporte n1/n2",
+  "idade":"31",
+  "local": "São Paulo - SP",
+  "estado-civil": "Solteiro & Noivo",
+  "contato":{
+    "phone": "(11) 9 4036-0668",
+    "email": "erick_sasaki@hotmail.com",
+    "site": "",
+    "linkedin": "https://www.linkedin.com/in/erick-sasaki-432498149/",
+    "github": "https://github.com/NWERICKSASAKI"
   },
-  "languages": [
-    "Português BR",
-    "Inglês (intermediário)"
-  ],
-  "portfolio": [
+  "soft-skills":[
     {
-      "name": "Curso Ministrado na DIO para a criação de uma Pokedex",
-      "url": "https://github.com/RenanJPaula/js-developer-pokedex",
-      "github": true
+      "nome":"Empatia",
+      "icone":"<i class=\"fa-solid fa-hand-holding-heart\"></i>"
     },
     {
-      "name": "Curso Ministrado na DIO para a criação de uma página de portfolio",
-      "url": "https://github.com/RenanJPaula/js-developer-portfolio",
-      "github": true
+      "nome":"Criatividade",
+      "icone":"<i class=\"fa-solid fa-box-open\"></i>"
+    },
+    {
+      "nome":"Pró-atividade",
+      "icone":"<i class=\"fa-solid fa-bolt\"></i>"
+    },
+    {
+      "nome":"Responsabilidade",
+      "icone":"<i class=\"fa-solid fa-hand\"></i>"
+    },
+    {
+      "nome":"Senso de Urgência",
+      "icone":"<i class=\"fa-solid fa-bomb\"></i>"
+    },
+    {
+      "nome":"Trabalho em Equipe",
+      "icone":"<i class=\"fa-solid fa-user-group\"></i>"
     }
   ],
-  "professionalExperience": [
+  "experiencia":[
     {
-      "name": "Arquiteto de software / S3 BANK",
-      "period": "2022 - até o momento",
-      "description": "É um prazer trabalhar ao lado de tantos profissionais excepcionais e construir tantas inovações de mercado."
+      "cargo":"Operador de Sistema / Suporte N1 N2",
+      "icone":"<i class=\"fa-solid fa-network-wired\"></i>",
+      "data-inicio":"13/12/2023",
+      "data-fim":"atualmente",
+      "empresa":"Terceira Onda Informações",
+      "descricao-atividades":"lorem...",
+      "hard-skills":["shellscript","powershell","rpa","python"]
     },
     {
-      "name": "Software Engineering Lead / DIO",
-      "period": "2021 - 2022",
-      "description": "Foi um grande prazer fazer parte deste time fantástico e poder contribuir com a transformação de tantas vidas."
+      "cargo":"Auxiliar de Engenharia",
+      "icone":"<i class=\"fa-solid fa-fire-burner\"></i>",
+      "data-inicio":"00/00/0000",
+      "data-fim":"00/00/0000",
+      "empresa":"Salluti Ambiental (CiaPellet)",
+      "descricao-atividades":"lorem...",
+      "hard-skills":["orçamento","cotação","compras","projetos","gestão de projetos"]
     },
     {
-      "name": "CEO / Brain Machine",
-      "period": "2016 - 2021",
-      "description": "Anos incríveis ao lado de pessoas maravilhosas ajudando muitas empresas por todo o mundo."
+      "cargo":"Analista de Engenharia",
+      "icone":"<i class=\"fa-solid fa-magnifying-glass-chart\"></i>",
+      "data-inicio":"00/00/0000",
+      "data-fim":"00/00/0000",
+      "empresa":"W-Energy",
+      "descricao-atividades":"lorem...",
+      "hard-skills":["monitoração","excel","vba","autohotkey"]
+    }
+  ],
+  "certificacoes":[
+    {
+      "titulo":"Santander 2025 - Front-End",
+      "icone":"<i class=\"fa-solid fa-globe\"></i>",
+      "certificadora":"Digital Innovation One",
+      "data-conclusao":"31/08/2025",
+      "data-inicio":"09/06/2025",
+      "carga-horaria":"102 horas",
+      "url-certificado":"https://hermes.dio.me/certificates/cover/2LLYSXHJ.jpg",
+      "hard-skills":["HTML","CSS","Node","JavaScript"]
+    },
+    {
+      "titulo":"Fundamentos de Engenharia de Dados",
+      "icone":"<i class=\"fa-solid fa-file-circle-check\"></i>",
+      "certificadora":"Data Science Academy",
+      "data-conclusao":"25/05/2025",
+      "data-inicio":"",
+      "carga-horaria":"24 horas",
+      "url-certificado":"https://www.datascienceacademy.com.br/certificate_v2/6400288ed95562f1e20b5169/user/67cf647ff369533d850b8b67",
+      "hard-skills":["ETL","Pipeline de Dados"]
+    },
+    {
+      "titulo":"Santander Coders 2023 - Engenharia de Dados",
+      "icone":"<i class=\"fa-solid fa-code\"></i>",
+      "certificadora":"ADA",
+      "data-conclusao":"02/12/2023",
+      "data-inicio":"",
+      "carga-horaria":"324 horas",
+      "url-certificado":"",
+      "hard-skills":["Python","Lógica de Programação","NumPy","Pandas","Requests","PySpark","DataBricks"]
     }
   ]
+
+
 }
