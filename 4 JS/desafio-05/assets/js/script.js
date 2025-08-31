@@ -27,8 +27,11 @@ async function fetchProfileData() {
 }
 
 async function substituirInformacoes(profile) {
-   state.foto.src = profile.foto
-   state.sobreMim = profile.sobre-mim
+   state.foto.src = profile.foto;
+   state.sobreMim.textContent = profile["sobre-mim"];
+   state.idade.textContent = profile.idade;
+   state.estadoCivil.textContent = profile["estado-civil"];
+   state.disponibilidadeViagem.textContent = profile["disponibilidade-viagem"];
 }
 
 async function init(){
