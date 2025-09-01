@@ -91,8 +91,8 @@
     {
       "titulo":"Engenharia de Energia",
       "icone":"<i class=\"fa-solid fa-solar-panel\"></i>",
-      "data-inicio":"02/2020",
-      "data-fim":"06/2013",
+      "data-inicio":"06/2013",
+      "data-fim":"02/2020",
       "tipo":"Graduação",
       "instituicao":"Universidade Federal do Pampa",
       "situacao":"Concluído"

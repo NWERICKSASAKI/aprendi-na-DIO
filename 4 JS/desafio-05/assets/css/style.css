@@ -22,7 +22,7 @@ body{
     box-shadow: -5px 0 10px black, 5px 0 10px black;
     background-image: url('https://unblast.com/wp-content/uploads/2022/01/Paper-Texture-3-1024x768.jpg');
     background-size: cover;
-    background-color: rgba(255,255,255,0.7);
+    background-color: rgba(255,255,255,0.5);
     background-blend-mode: lighten;
 }
 
@@ -96,7 +96,7 @@ aside h2 i{
 }
 
 
-p{
+aside p{
     font-size: 12px;
     font-weight: normal;
     font-family: 'Raleway', Courier, monospace;
@@ -184,6 +184,15 @@ main{
     margin-left: 10px;
     width: 65%;
     margin-left: 60px;
+    color: rgb(19, 84, 158);
+}
+
+main p{
+    font-size: 12px;
+    font-weight: normal;
+    font-family: 'Raleway', Courier, monospace;
+    text-align: justify;
+
 }
 
 main section{
@@ -213,6 +222,8 @@ main section ul li h3 i{
 }
 
 main section ul li{
+    display: grid;
+
     font-size: 16px;
     margin-left: 50px;
     color:  rgb(19, 84, 158);
@@ -223,6 +234,10 @@ main section ul li span{
     font-family: 'Raleway', Courier, monospace;
     font-size: 12px;
     color:  rgb(19, 84, 158);
+}
+
+span.empresa{
+    font-weight: bold;
 }
 
 .tipo{
