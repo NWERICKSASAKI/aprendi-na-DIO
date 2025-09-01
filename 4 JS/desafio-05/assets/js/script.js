@@ -43,7 +43,9 @@ async function addContato(profile) {
     const celularContent = profile.contato.celular;
     if (!!celularContent){
         const icon = '<i class="fa-brands fa-whatsapp"></i>';
-        htmlParaAcrescentar += `<li>${icon}<span>${celularContent}</span></li>`;       
+        const regex = /\+55(\d{2})(\d{1})(\d{4})(\d{4})/;
+        const telefoneFormatado = celularContent.replace(regex, '($1) $2 $3-$4');
+        htmlParaAcrescentar += `<li>${icon}<a target="_blank" href="http://wa.me/${celularContent}">${telefoneFormatado}</a></li>`;       
     }
 
     const githubContent = profile.contato.github;
@@ -91,12 +93,13 @@ async function addExperiencias(profile){
 
         const htmlString =
         `<li>
-            <h3>${info.icone}${info.cargo}</h3>
-            <p>
+            ${info.icone}
+            <div>
+                <h3>${info.cargo}</h3>
                 <span class="empresa">${info.empresa}</span>
                 <br>
                 ${info['data-inicio']} - ${info['data-fim']}
-            </p>
+            </div>
         </li>`
         htmlParaAcrescentar += htmlString
 
@@ -112,12 +115,13 @@ async function addFormacoes(profile){
 
         const htmlString =
         `<li>
-            <h3>${info.icone}${info.titulo}</h3>
-            <p>
+            ${info.icone}
+            <div>
+            <h3>${info.titulo}</h3>
                 <span class="ano-termino">${info["data-fim"]}</span>
                 <span class="tipo">${info.tipo}</span>
                 <span class="instituicao">${info.instituicao}</span>
-            </p>
+            </div>
         </li>`
         htmlParaAcrescentar += htmlString
 
@@ -133,12 +137,13 @@ async function addCertificacoes(profile){
 
         const htmlString =
         `<li>
-            <h3>${info.icone}${info.titulo}</h3>
-            <p>
+            ${info.icone}
+            <div>
+                <h3>${info.titulo}</h3>
                 <span class="ano-termino">${info["data-conclusao"]}</span>
                 <span><b>${info.certificadora}</b></span>
                 <span>${info["carga-horaria"]}</span>
-            </p>
+            </div>
         </li>`
         htmlParaAcrescentar += htmlString
 
