@@ -26,14 +26,10 @@ body{
     background-blend-mode: lighten;
 }
 
-#left-margin{
-    width: 50px;
-    background-color: white;
 
-}
 
 aside{
-    margin-top: 50px;
+    margin-top: 30px;
     margin-left: 50px;
     display: flex;
     flex-direction: column;
@@ -48,7 +44,6 @@ aside{
     align-self: center;
     width: 100%;
     border-radius: 50%;
-    border: 3px solid  rgb(2, 27, 56);
     mix-blend-mode: multiply;
 }
 
@@ -114,16 +109,16 @@ li{
     color: lightblue;
 }
 
-ul#contato li{
+aside ul li{
     display: grid;
     grid-template-columns: 15px 170px;
-    column-gap: 15px;
+    column-gap: 17px;
 }
 
-aside ul li i{
-    margin-right: 11px;
+aside ul li span, aside ul li a, #sobre-mim{
+    text-shadow:
+     0px 0px 1px black,
 }
-
 
 a{
     cursor: pointer;
@@ -145,8 +140,8 @@ h1, h1 span{
 
 .name__container{
     position: relative;
-    left: -35px;
-    margin: 155px 0 150px -10px;
+    left: -15px;
+    margin: 155px 0 70px -10px;
 }
 
 #n1{
@@ -179,17 +174,10 @@ h1, h1 span{
 main{
     margin-left: 10px;
     width: 65%;
-    margin-left: 60px;
+    margin-left: 35px;
     color: rgb(19, 84, 158);
 }
 
-main p{
-    font-size: 12px;
-    font-weight: normal;
-    font-family: 'Raleway', Courier, monospace;
-    text-align: justify;
-
-}
 
 main section{
     margin-bottom: 50px;
@@ -203,6 +191,9 @@ main section h2{
     font-family: 'Roboto', Courier, monospace;
 }
 
+i{
+    align-self: center;
+}
 
 main section h2 i{
     margin-right: 20px;
@@ -214,7 +205,7 @@ main section ul li h3{
 
 main section ul li{
     display: grid;
-    grid-template-columns: 20px 700px;
+    grid-template-columns: 20px 1fr;
     column-gap: 20px;
     font-size: 16px;
     margin-left: 15px;
@@ -228,6 +219,8 @@ main section ul li div{
     color:  rgb(19, 84, 158);
 }
 
+
+
 span.empresa{
     font-weight: bold;
 }
@@ -236,6 +229,27 @@ span.empresa{
     font-weight: 700;
 }
 
+.hover:hover , .hover div:hover{
+    text-shadow: 1px 1px 10px rgb(19, 84, 158);
+    cursor: pointer;
+}
+
 .debug{
     border: 2px solid red;
 }
+
+
+@media print{
+    #paper{
+        background-color: white;
+        background-image: none;
+    }
+    
+    #n1, #n4{
+        color: #0C4280;
+    }
+
+
+    
+
+} 

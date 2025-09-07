@@ -92,13 +92,17 @@ async function addExperiencias(profile){
     lista.forEach(info => {
 
         const htmlString =
-        `<li>
+        `<li class="hover">
             ${info.icone}
             <div>
                 <h3>${info.cargo}</h3>
-                <span class="empresa">${info.empresa}</span>
-                <br>
-                ${info['data-inicio']} - ${info['data-fim']}
+                <p>
+                    <span class="empresa">${info.empresa}</span>
+                    <br>
+                    ${info['data-inicio']} - ${info['data-fim']}
+                    <br>
+                    <b>Descrição</b> ${info['descricao-atividades']}
+                </p>
             </div>
         </li>`
         htmlParaAcrescentar += htmlString

@@ -5,8 +5,8 @@
   "titulo": "Suporte n1/n2",
   "idade":"31",
   "local": "São Paulo - SP",
-  "estado-civil": "Solteiro & Noivo",
-  "disponibilidade-viagem": "Disponívelpara Viagens",
+  "estado-civil": "Solteiro (noivo)",
+  "disponibilidade-viagem": "Disponível para Viagens",
   "contato":{
     "celular": "+5511940360668",
     "email": "erick_sasaki@hotmail.com",
@@ -44,11 +44,11 @@
     {
       "cargo":"Operador de Sistema / Suporte N1 N2",
       "icone":"<i class=\"fa-solid fa-network-wired\"></i>",
-      "data-inicio":"13/12/2023",
+      "data-inicio":"12/2023",
       "data-fim":"atualmente",
       "empresa":"Terceira Onda Informações",
-      "descricao-atividades":"lorem...",
-      "hard-skills":["shellscript","powershell","rpa","python"]
+      "descricao-atividades":"Acesso a servidores e serviços para fins de monitoração, consulta, identificação e resolução de problemas. Atendimento à técnicos locais para resolução de problemas. Automatização de processos nos tempos livres.",
+      "hard-skills":["shellscript","powershell","rpa","python","git","análise de dados","monitoração","grafana","nagios","kibana","telnet","ssh"]
     },
     {
       "cargo":"Auxiliar de Engenharia",
@@ -56,8 +56,8 @@
       "data-inicio":"06/2021",
       "data-fim":"12/2022",
       "empresa":"Salluti Ambiental (CiaPellet)",
-      "descricao-atividades":"lorem...",
-      "hard-skills":["orçamento","cotação","compras","projetos","gestão de projetos"]
+      "descricao-atividades":"Elaboração de projetos de caldeiras e rede hidráulica (levantamento de materiais e custos, elaboração de orçamentos, cotação e compras, acompanhamento de fabricação e implantação)",
+      "hard-skills":["caldeira","hidráulica","projetos","gestão de projetos","orçamento","cotação","compras","analise de viabilidade","eficiência energética"]
     },
     {
       "cargo":"Analista de Engenharia",
@@ -65,8 +65,8 @@
       "data-inicio":"09/2019",
       "data-fim":"03/2021",
       "empresa":"W-Energy | Economia de Água e Energia",
-      "descricao-atividades":"lorem...",
-      "hard-skills":["monitoração","excel","vba","autohotkey"]
+      "descricao-atividades":"Monitoração do consumo de água e energia de diversos cliente, comunicação pró-ativo com clientes e técnico para resolução de problemas.",
+      "hard-skills":["eficiência hídrica","eficiência energética","análise de dados","sistema solar fotovoltaico","monitoração","excel","vba","autohotkey"]
     }
   ],
   "formacoes":[
