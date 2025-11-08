@@ -89,8 +89,8 @@ async function addSoftSkills(profile){
 async function addExperiencias(profile){
     const lista = profile.experiencias;
     let htmlParaAcrescentar = ''
-    lista.forEach(info => {
 
+    lista.forEach(info => {
         const htmlString =
         `<li class="hover">
             ${info.icone}
@@ -100,8 +100,13 @@ async function addExperiencias(profile){
                     <span class="empresa">${info.empresa}</span>
                     <br>
                     ${info['data-inicio']} - ${info['data-fim']}
-                    <br>
-                    <b>Descrição</b> ${info['descricao-atividades']}
+                    
+                </p>
+                <p class="oculto">
+                    <br><br>
+                    <b>Atividades</b> ${info['descricao-atividades']}
+                    <br><br>
+                    <b>Hard-skills</b> ${info['hard-skills'].join(", ")}
                 </p>
             </div>
         </li>`
@@ -155,6 +160,10 @@ async function addCertificacoes(profile){
     state.certificacoes.innerHTML = htmlParaAcrescentar;
 }
 
+async function funcaoClicarExperiencias(){
+    const todasLi = document.querySelectorAll('.hover');
+    todasLi.forEach()
+}
 
 async function init(){
     const profile = await fetchProfileData();
@@ -164,6 +173,7 @@ async function init(){
     addExperiencias(profile);
     addFormacoes(profile);
     addCertificacoes(profile);
+    //funcaoClicarExperiencias();
 }
 
 

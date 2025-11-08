@@ -47,7 +47,7 @@
       "data-inicio":"12/2023",
       "data-fim":"atualmente",
       "empresa":"Terceira Onda Informações",
-      "descricao-atividades":"Acesso a servidores e serviços para fins de monitoração, consulta, identificação e resolução de problemas. Atendimento à técnicos locais para resolução de problemas. Automatização de processos nos tempos livres.",
+      "descricao-atividades":"Acesso a servidores e serviços para fins de monitoração, consulta, identificação e resolução de problemas. Automatização de processos nos tempos livres.",
       "hard-skills":["shellscript","powershell","rpa","python","git","análise de dados","monitoração","grafana","nagios","kibana","telnet","ssh"]
     },
     {

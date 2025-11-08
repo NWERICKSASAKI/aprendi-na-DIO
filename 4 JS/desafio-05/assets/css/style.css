@@ -173,7 +173,7 @@ h1, h1 span{
 
 main{
     margin-left: 10px;
-    width: 65%;
+    width: 48%;
     margin-left: 35px;
     color: rgb(19, 84, 158);
 }
@@ -238,6 +238,9 @@ span.empresa{
     border: 2px solid red;
 }
 
+.oculto{
+    display: none;
+}
 
 @media print{
     #paper{
