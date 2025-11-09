@@ -1,61 +1,3 @@
-# código-fonte -> https://github.com/digitalinnovationone/trilha-python-dio/blob/00_fundamentos/00%20-%20Fundamentos/desafio.py
-
-# Objetivo Geral
-# Separar as funções exixstentes de saque, depósito e extrato em funções.
-# Criar duas novas funções: cadastrar usuário (cliente) e cadastrar conta bancária
-
-# Desafio
-# Precisamos deixar nosso código mais modularizarado, para isso
-# vamos criar funções para as operações existentes: sacar,
-# depositar e visualizar histórico. Além disso, para a versão 2 do
-# nosso sistema precisamos criar duas novas funções: criar
-# usuário (cliente do banco) e criar conta corrente (vincular com usuário)
-
-# Separação em funções
-# Devemos criar funções para todas as operações do sistema.
-# Para exercitar tudo o que aprendemos neste módulo, cada
-# função vai ter uma regra na passagem de argumentos.
-# O retorno e a forma como serão chamadas, pode ser definida por
-# você da forma que achar melhor.
-
-# Saque
-# A função saque deve receber os argumentos apenas por nome
-# (keyword only). Sugestão de argumentos: saldo, valor, extrato,
-# limite, numero_saques, limites_saques. Sugestão de retorno: saldo e extrato.
-
-# Depósito
-# A função depósito deve receber os argumentos apenas por
-# posição (positional only). Sugestão de argumentos: saldo, valor, extrato.
-# Sugestão de retorno: saldo e extrato.
-
-# Extrato
-# A função extrato deve receber os argumentos por posição e nome
-# (positional only e keyword only). Argumentos posicionais: saldo,
-# argumentos nomeados: extrato.
- 
-# Novas funções 
-# Precisamos criar duas novas funções: criar usuário e criar conta corrente.
-# Fique a votna de para adicionar mais funções, exemplo: listar contas.
- 
-# Criar usuário (cliente)
-# O programa deve armazenar os usuários em uma lista, 
-# um usuário é composto por> nome, data de nascimento, cpf e endereço.
-# O endereço é uma string com o formato: logradouro, nro - bairro - cidade/sigla estado.
-# Deve ser armazenado somente os números do CPF.
-# Não podemos cadastrar 2 usuários com o mesmo CPF.
-
-# Criar conta corrente
-# O programa deve armazenar contas em uma lista, 
-# uma conta é composta por: agência, número da conta e usuário.
-# O número da conta é sequencial, iniciando em 1.
-# O número da agência é fixo: "0001". 
-# O usuário pode ter mais de uma conta, mas uma conta pertence a somente um usuário. 
-
-# Dica
-# Para vincular um usuário a uma conta, filtre a lista de usuários
-# buscando o número do CPF informado para cada usuário da lista.
-
-
 menu = """
 
 [d] Depositar
@@ -63,6 +5,8 @@ menu = """
 [e] Extrato
 [u] Criar usuário
 [c] Criar conta corrente
+[l] Listar contas
+[v] Listar usuarios
 [q] Sair
 
 => """
@@ -72,6 +16,13 @@ limite = 500
 extrato = ""
 numero_saques = 0
 LIMITE_SAQUES = 3
+usuarios = [{"nome":"Teste",
+             "nascimento":"01/01/1900",
+             "cpf":11235813,
+             "endereco":"logradouro, 123 - bairro - cidade/UF"}]
+contas = [{"agencia":"0001",
+           "numero_conta":1,
+           "usuario":11235813}]
 
 def depositar(saldo, valor, extrato,/):
     if valor > 0:
@@ -99,12 +50,66 @@ def sacar(*, saldo, valor, extrato, limite, numero_saques, limites_saques):
         print("Operação falhou! O valor informado é inválido.")
     return saldo, extrato
 
-def extrato(saldo,/,*,extrato):
+def ver_extrato(saldo,/,*,extrato):
     print("\n================ EXTRATO ================")
     print("Não foram realizadas movimentações." if not extrato else extrato)
     print(f"\nSaldo: R$ {saldo:.2f}")
     print("==========================================")
     return
+
+def criar_usuario(cpf:int):
+    global usuarios
+    nome = input("Insira o nome completo do novo usuário: ")
+    data_nascimento = input("Insira o nascimento do novo usuário (dd/mm/aaaa): ")
+    endereco = input("Insira endereço do novo usuário (logradouro, nro - bairro - cidade/UF): ")
+    usuarios.append({"nome":nome,
+                     "data_nascimento":data_nascimento,
+                     "cpf":cpf,
+                     "endereco":endereco})
+    print("\nUsuario cadastrado!")
+    return
+
+def cpf_str_p_int(cpf:str) -> int:
+    cpf = cpf.strip()
+    cpf = cpf.replace(".","")
+    cpf = cpf.replace("-","")
+    cpf = cpf.replace(" ","")
+    if cpf.isnumeric():
+        return int(cpf)
+    else:
+        return False
+
+def cpf_cadastrado(cpf:int):
+    for usuario in usuarios:
+        if cpf == usuario["cpf"]:
+            return True
+    else:
+        return False
+
+def criar_conta_corrente(cpf:int):
+    # O programa deve armazenar contas em uma lista, 
+    # uma conta é composta por: agência, número da conta e usuário.
+    # O número da conta é sequencial, iniciando em 1.
+    # O número da agência é fixo: "0001". 
+    # O usuário pode ter mais de uma conta, mas uma conta pertence a somente um usuário.
+    global contas
+    AGENCIA = "0001"
+    numero_conta = contas[-1]["numero_conta"] + 1
+    contas.append({"agencia":AGENCIA, 
+                   "numero_conta":numero_conta,
+                   "usuario":cpf})
+    return
+
+def listar_contas():
+    for conta in contas:
+        print(conta)
+    return
+
+def listar_usuarios():
+    for usuario in usuarios:
+        print(usuario)
+    return
+
 
 
 while True:
@@ -120,13 +125,35 @@ while True:
         saldo, extrato = sacar(saldo=saldo, valor=valor, extrato=extrato, limite=limite, numero_saques=numero_saques, limites_saques=LIMITE_SAQUES)
 
     elif opcao == "e":
-        extrato(saldo, extrato=extrato)
+        ver_extrato(saldo, extrato=extrato)
 
     elif opcao == "u":
-        pass
+        cpf:str = input("Digite o CPF: ")
+        cpf:int = cpf_str_p_int(cpf)
+        if cpf:
+            if cpf_cadastrado(cpf):
+                print("CPF já cadastrado.")
+            else:
+                criar_usuario(cpf)
+        else:
+            print('CPF inválido')
 
     elif opcao == "c":
-        pass
+        cpf:str = input("Digite o CPF: ")
+        cpf:int = cpf_str_p_int(cpf)
+        if cpf:
+            if cpf_cadastrado(cpf):
+                criar_conta_corrente(cpf)
+            else:
+                print("Usuário não cadastrado.")
+        else:
+            print('CPF inválido')
+
+    elif opcao == "l":
+        listar_contas()
+
+    elif opcao == "v":
+        listar_usuarios()
 
     elif opcao == "q":
         break
