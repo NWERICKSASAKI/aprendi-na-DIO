@@ -4,7 +4,7 @@
 
 As funções pode ser passadas e usadas como argumentos
 
-```
+```py
 def dizer(nome):
     return f"Oi {nome}"
 
@@ -30,7 +30,7 @@ mensagem_para_guilherme(incentivar_aprender)
 
 É possível definir funções dentro de outras funções.
 
-``` 
+``` py
 def pai():
     print("Escrevendo da pai() função")
 
@@ -51,7 +51,7 @@ pai()
 `Escrevendo da filho1() função`  
 
 
-```
+```py
 def calcular(operacao):
     def somar(a, b):
         return a + b
@@ -70,7 +70,7 @@ print(resultado)
 
 `4`
 
-```
+```py
 def meu_decorador(funcao):
     def envelope():
         print("Faz algo antes de executar a função.")
@@ -94,7 +94,7 @@ ola_mundo()
 O Python permite que você use decoradores de maneira mais simples com o símbolo @.
 
 
-```
+```py
 def meu_decorador(funcao):
     def envelope():
         print("Faz algo antes de executar a função.")
@@ -117,7 +117,7 @@ ola_mundo()
 
 Podemos usar ***args** e ****kwargs**  na função interna, com isso ela aceitará um número arbitrário de argumentos posicionais      e palavras-chave.  
 
-```
+```python
 def duplicar(func):
     def envelope(*args, **kwargs):
         func(*args, **kwargs)
