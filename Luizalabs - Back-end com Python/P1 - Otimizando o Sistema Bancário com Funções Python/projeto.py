@@ -32,10 +32,10 @@ def depositar(saldo, valor, extrato,/):
         print("Operação falhou! O valor informado é inválido.")
     return saldo, extrato
 
-def sacar(*, saldo, valor, extrato, limite, numero_saques, limites_saques):
+def sacar(*, saldo, valor, extrato, limite, numero_saques, limites_saques=LIMITE_SAQUES):
     excedeu_saldo = valor > saldo
     excedeu_limite = valor > limite
-    excedeu_saques = numero_saques >= LIMITE_SAQUES
+    excedeu_saques = numero_saques >= limites_saques
     if excedeu_saldo:
         print("Operação falhou! Você não tem saldo suficiente.")
     elif excedeu_limite:
@@ -48,7 +48,7 @@ def sacar(*, saldo, valor, extrato, limite, numero_saques, limites_saques):
         numero_saques += 1
     else:
         print("Operação falhou! O valor informado é inválido.")
-    return saldo, extrato
+    return saldo, extrato, numero_saques
 
 def ver_extrato(saldo,/,*,extrato):
     print("\n================ EXTRATO ================")
@@ -57,8 +57,7 @@ def ver_extrato(saldo,/,*,extrato):
     print("==========================================")
     return
 
-def criar_usuario(cpf:int):
-    global usuarios
+def criar_usuario(cpf:int, usuarios=usuarios):
     nome = input("Insira o nome completo do novo usuário: ")
     data_nascimento = input("Insira o nascimento do novo usuário (dd/mm/aaaa): ")
     endereco = input("Insira endereço do novo usuário (logradouro, nro - bairro - cidade/UF): ")
@@ -67,7 +66,7 @@ def criar_usuario(cpf:int):
                      "cpf":cpf,
                      "endereco":endereco})
     print("\nUsuario cadastrado!")
-    return
+    return usuarios
 
 def cpf_str_p_int(cpf:str) -> int:
     cpf = cpf.strip()
@@ -86,19 +85,18 @@ def cpf_cadastrado(cpf:int):
     else:
         return False
 
-def criar_conta_corrente(cpf:int):
+def criar_conta_corrente(cpf:int, contas=contas):
     # O programa deve armazenar contas em uma lista, 
     # uma conta é composta por: agência, número da conta e usuário.
     # O número da conta é sequencial, iniciando em 1.
     # O número da agência é fixo: "0001". 
     # O usuário pode ter mais de uma conta, mas uma conta pertence a somente um usuário.
-    global contas
     AGENCIA = "0001"
     numero_conta = contas[-1]["numero_conta"] + 1
     contas.append({"agencia":AGENCIA, 
                    "numero_conta":numero_conta,
                    "usuario":cpf})
-    return
+    return contas
 
 def listar_contas():
     for conta in contas:
@@ -122,7 +120,7 @@ while True:
 
     elif opcao == "s":
         valor = float(input("Informe o valor do saque: "))
-        saldo, extrato = sacar(saldo=saldo, valor=valor, extrato=extrato, limite=limite, numero_saques=numero_saques, limites_saques=LIMITE_SAQUES)
+        saldo, extrato, numero_saques = sacar(saldo=saldo, valor=valor, extrato=extrato, limite=limite, numero_saques=numero_saques, limites_saques=LIMITE_SAQUES)
 
     elif opcao == "e":
         ver_extrato(saldo, extrato=extrato)
@@ -134,7 +132,7 @@ while True:
             if cpf_cadastrado(cpf):
                 print("CPF já cadastrado.")
             else:
-                criar_usuario(cpf)
+                usuarios = criar_usuario(cpf, usuarios)
         else:
             print('CPF inválido')
 
@@ -143,7 +141,7 @@ while True:
         cpf:int = cpf_str_p_int(cpf)
         if cpf:
             if cpf_cadastrado(cpf):
-                criar_conta_corrente(cpf)
+                contas = criar_conta_corrente(cpf,contas)
             else:
                 print("Usuário não cadastrado.")
         else:
