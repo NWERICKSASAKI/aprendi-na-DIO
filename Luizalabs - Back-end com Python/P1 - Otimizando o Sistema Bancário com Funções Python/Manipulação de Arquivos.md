@@ -78,3 +78,86 @@ os.remove(ROOT_PATH / "nova-pasta" / "alterado.txt")
 
 * `FileNotFoundError` - Lançada quando o arquivo que está sendo aberto não pode ser encontrado no diretório especificado.
 * `PermissionError` - Lançada quando ocorre uma tentativa de abrir um arquivo sem as permissões adequadas para leitura ou gravação.
+* `IOError` - Lançada quando ocorre um erro geral de IO (Input / Output) ao trabalhar com o arquivo, como *problemas de permissão*, *falta de espaço em disco*, etc.  
+* `UnicodeDecodeError` - Lançada quando ocorre um erro ao tentar decodificar os dados de um arquivo de texto usando uma codificação inadequada.
+* `UnicodeEncodeError` - Lançada quando ocorre um erro ao tentar codificar os dados de uma determinada codificação ao gravar em um arquivo de texto.
+* `IsADirectoryError` - Lançada quando é feita uma tentativa de abrir um diretóprio em vez de um arquivo de texto.
+
+```py
+try:
+    file = open('non_existent.txt', 'r')
+except FileNotFoundError as detalhes_da_excecao:
+    print('Arquivo não encontrado, ', detalhes_da_excecao)
+except Exception as detalhes_da_excecao: # demais erros
+    print(detalhes_da_excecao)
+```
+
+### Boas Práticas
+
+#### Bloco with
+Use o gerenciamneto de contexto (context manager) com a declaração `with`.  
+O gerenciamento de contexto permite trabalhar com arquivos de forma segura, garantindo que eles sejam fechados corretamente, mesmo em caso de exceções.  
+
+```py
+from pathlib import Path
+
+ROOT_PATH = Path(__file__).parent
+
+with open(ROOT_PATH / 'lorem.txt', 'r') as arquivo:
+    print(arquivo.read())
+```
+
+#### Verifique se o arquivo foi aberto com sucesso
+É recomendado verificar se o arquivo foi aberto corretamente antes de executar operações de leitura ou gravação nele.
+
+```py
+from pathlib import Path
+
+ROOT_PATH = Path(__file__).parent
+
+try:
+    with open(ROOT_PATH / 'lorem.txt', 'r') as arquivo:
+        print(arquivo.read())
+except IOError as e:
+    print('Erro ao abrir o arquivo: ',e)
+```
+
+#### Use a codificação correta
+Certifique-se de usar a codificação correta ao ler ou gravar arquivos de texto. O argument `encoding` da função `open()` permite especificar a codificação.
+
+```py
+with open(ROOT_PATH / 'lorem.txt', 'r', encoding='utf-8') as arquivo:
+```
+
+
+## Trabalhando com arquivo CSV
+
+*Comma Separated Values (Valores separados por vírgulas)*.  
+Um formato de arquivo de texto utilizado para armazenar dados em formato tabulares.
+
+O Python fornece um módulo chamado `csv` para lidar facilmente com arquivos CSV.
+
+```py
+import csv
+from pathlib import Path
+
+ROOT_PATH = Path(__file__).parent
+
+# Lendo
+with open(ROOT_PATH / 'example.csv','r') as file:
+    reader = csv.reader(file)
+    for row in reader:
+        print(row)
+
+# Gravando
+with open(ROOT_PATH / 'example.csv','r', newline='') as file:
+    writer = csv.writef(file)
+    writer.writerow(["nome","idade"])
+    writer.writerow(["Ana",30])
+    writer.writerow(["Joao",25])
+```
+
+### Boa práticas
+* Usar o `csv.reader` e `csv.write` para manipular arquivos CSV.
+* Utilizar `newline('')` como argumento no open no modo write.
+* Fazer o tratamento correto das exceções.
