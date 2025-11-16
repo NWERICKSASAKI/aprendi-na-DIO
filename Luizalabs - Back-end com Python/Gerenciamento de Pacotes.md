@@ -104,3 +104,49 @@ poetry init
 poetry install
 ```
 
+## Boas práticas
+
+Python tem um a série de convenções e melhores práticas codificadas em PEPs (Propostas de Melhoria do Python). A mais conhecida destas é provavelmente a PEP 8, que cobre o estilo de codificação.
+
+### O que é PEP 8?
+
+[PEP8](http://peps.python.org/pep-0008/) é o guia de estilo para codificação em Python. Ele inclui convenções sobre nome de variáveis, uso de espaços em branco, comprimento da linha e muitas outras coisas que ajudam a manter o código Python consistente e legível.
+
+Algumas das principais recomendações:
+
+* usar 4 espaçoes para identação,
+* limitar as linhas a 79 caracteres,
+* snake_case para funções e variáveis,
+* CamelCase para classes.
+
+### Uso de ferramentas de checagem de estilo
+
+Para nos ajudar a seguir as recomendações da PEP 8, podemos usar ferramentas de checagem de estilo como flake8. Essas ferramentas verificam nosso código e nos informam onde estamos desviando do guia de estilo.
+
+```bash
+pip install flake8
+flake8 meu_script.py
+```
+
+### Formatação automática de código
+
+**Black** é uma ferramenta de formatação de código Python que segue a filosofia "formato único". Black reformata todo o seu arquivo em um estilo consistente, simplificando a tarefa de manter o código em conformidade com a PEP 8.
+
+```bash
+pip install black
+black meu_script.py
+```
+
+### Organização de imports com isort
+
+**Isort** é uma ferramenta Python para classificar importações alfabeticamente e separá-las automaticamente em seções. Ele proporciona uma maneira rápida e fácil de ordenar e categorizar suas importações.
+
+```bash
+pip install isort
+isort meu_script.py
+```
+
+VSCode - extensão: Fonte Microsoft
+
+* Black formatter
+* isort
