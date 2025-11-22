@@ -113,7 +113,7 @@ ola_mundo()
 `Olá mundo!`  
 `Faz algo depois de executar a função.`  
 
-## Funcções de decoração com argumentos
+## Funções de decoração com argumentos
 
 Podemos usar ***args** e ****kwargs**  na função interna, com isso ela aceitará um número arbitrário de argumentos posicionais      e palavras-chave.  
 

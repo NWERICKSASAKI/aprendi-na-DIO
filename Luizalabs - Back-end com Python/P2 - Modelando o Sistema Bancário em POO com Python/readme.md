@@ -36,7 +36,7 @@ Classe Transacao
 
 * é uma interface, uma classe abstrata
 * tem um método `registrar(conta: Conta)`
-* tem 2 classes (`Deposito` e `Saque`)que implementam essa classe `Transacao`
+* tem 2 classes (`Deposito` e `Saque`) que implementam essa classe `Transacao`
 
 Classe Cliente
 
