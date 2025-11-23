@@ -2,62 +2,50 @@ from abc import ABC, abstractmethod
 from datetime import date
 import textwrap
 
-
 class Conta:
-    def __init__(self, saldo:float, numero:float, agencia:str, cliente:Cliente, historico:Historico):
+    def __init__(self, saldo:float, numero:int, agencia:str, cliente:object, historico:object):
         self._saldo:float = saldo
         self._numero:int = numero
         self._agencia:str = agencia
         self._cliente:Cliente = cliente
-        self._historico:Historico = Historico()
-
-        @property
-        def saldo(self) -> float:
-            return self._saldo
-        
-        @classmethod
-        def nova_conta(cls, cliente:Cliente, numero:int) -> Conta:
-            # input para solicitar dados da conta
-            return cls(cliente, numero)
-
-        def sacar(self, valor:float) -> bool:
-            excedeu_saldo = valor > self._saldo
-            if excedeu_saldo:
-                print("Operação falhou! Você não tem saldo suficiente.")
-                return False
-            elif valor > 0:
-                transacao_saque = Saque(valor)
-                cliente.realizar_transacao(self, transacao_saque)
-                # extrato += f"Saque: R$ {valor:.2f}\n"
-                return True
-            else:
-                print("Operação falhou! O valor informado é inválido.")
-                return False
-
-        def depositar(self, valor:float) -> bool:
-            if valor > 0:
-                self._saldo += valor
-                # extrato += f"Depósito: R$ {valor:.2f}\n"
-                return True
-            else:
-                print("Operação falhou! O valor informado é inválido.")
-                return False
-
-class ContaCorrente(Conta):
-    def __init__(self, cliente:Cliente, numero:int, limite:float=500, limite_saques:int=3):
-        super().__init__(cliente, numero)
-        self._limite:float = limite
-        self._limite_saques:int = limite_saques
-        self.numero_saques:int = 0
+        self._historico:Historico = historico
 
     @property
     def saldo(self) -> float:
-        return super().saldo
-
+        return self._saldo
+    
+    @saldo.setter
+    def saldo(self, valor:float) -> None:
+        self._saldo = valor
+    
     @classmethod
-    def nova_conta(cls, cliente:Cliente, numero:int) -> Conta:
-        return super().nova_conta(cliente, numero)
+    def nova_conta(cls, cliente:object, numero:int):
+        return cls(saldo=0.0, numero=numero, agencia="0001", cliente=cliente, historico=Historico())
 
+    def sacar(self, valor:float) -> bool:
+        excedeu_saldo = valor > self.saldo
+        if excedeu_saldo:
+            print("Operação falhou! Você não tem saldo suficiente.")
+            return False
+        elif valor > 0:
+            return True
+        else:
+            print("Operação falhou! O valor informado é inválido.")
+            return False
+
+    def depositar(self, valor:float) -> bool:
+        if valor > 0:
+            return True
+        else:
+            print("Operação falhou! O valor informado é inválido.")
+            return False
+
+class ContaCorrente(Conta):
+    def __init__(self, cliente:object, agencia:str, saldo:float=0.0, numero:int=1, limite:float=500, limite_saques:int=3, historico:object=[]):
+        super().__init__(saldo, numero, agencia, cliente, historico)
+        self._limite:float = limite
+        self._limite_saques:int = limite_saques
+        self.numero_saques:int = 0
 
     def sacar(self, valor:float) -> bool:
         excedeu_limite = valor > self._limite
@@ -74,6 +62,8 @@ class ContaCorrente(Conta):
                 self.numero_saques += 1
             return sacou
 
+    def depositar(self, valor:float) -> bool:
+        return super().depositar(valor)
 
 class Transacao(ABC):
     @abstractmethod
@@ -82,7 +72,7 @@ class Transacao(ABC):
 
 
 class Deposito(Transacao):
-    def __init___(self, valor:float=0.0):
+    def __init__(self, valor:float=0.0):
         self._valor = valor
 
     def registrar(self, conta:Conta):
@@ -94,7 +84,7 @@ class Saque(Transacao):
 
     def registrar(self, conta:Conta):
         conta._historico.adicionar_transacao(self)
-        conta._saldo -= self._valor
+        conta.saldo -= self._valor
 
 class Historico:
     def __init__(self):
@@ -103,19 +93,26 @@ class Historico:
     def adicionar_transacao(self, transacao:Transacao):
         self._transacoes.append(transacao)
 
+    @property
+    def transacoes(self) -> list:
+        return self._transacoes
 
 class Cliente:
     def __init__(self, endereco:str, contas:list=[]):
         self._endereco:str = endereco
         self._contas:list = contas
 
+    @property
+    def contas(self) -> list:
+        return self._contas
+
     def realizar_transacao(self, conta:Conta, transacao:Transacao):
         valor = transacao._valor
         if transacao.__class__ == Saque:
-            conta._saldo -= valor
+            conta.saldo -= valor
             print(f"Saque de R$ {valor:.2f} realizado com sucesso!")
         elif transacao.__class__ == Deposito:
-            conta._saldo += valor
+            conta.saldo += valor
             print(f"Depósito de R$ {valor:.2f} realizado com sucesso!")
         else:
             print("Tipo de transação inválida.")
@@ -123,8 +120,7 @@ class Cliente:
         transacao.registrar(conta)
 
     def adicionar_conta(self, conta:Conta) -> None:
-        nova_conta = Conta.adicionar_conta(self, conta)
-        self._contas.append(nova_conta)
+        self._contas.append(conta)
 
 class PessoaFisica(Cliente):
 
@@ -133,12 +129,6 @@ class PessoaFisica(Cliente):
         self._cpf:str = cpf
         self._nome:str = nome
         self._data_nascimento:date = data_nascimento
-
-    def realizar_transacao(self, conta, transacao):
-        return super().realizar_transacao(conta, transacao)
-    
-    def adicionar_conta(self, conta):
-        return super().adicionar_conta(conta)
 
 
 class SistemaBanco:
@@ -170,7 +160,8 @@ class SistemaBanco:
         novo_usuario = PessoaFisica(cpf=cpf,
                                    nome=nome,
                                    data_nascimento=data_nascimento,
-                                   endereco=endereco)
+                                   endereco=endereco,
+                                   contas=[])
         self._clientes.append(novo_usuario)
         print("\nUsuario cadastrado!")
         return novo_usuario
@@ -188,10 +179,10 @@ class SistemaBanco:
             print("CPF inválido. Tente novamente.")
 
     def printar_contas(self, cliente) -> None:
-        contas = cliente._contas
+        contas = cliente.contas
         if contas:
             for conta in contas:
-                print(f"Agência: {conta._agencia} | Conta: {conta._numero} | Saldo: R$ {conta._saldo:.2f}")
+                print(f"Agência: {conta._agencia} | Conta: {conta._numero} | Saldo: R$ {conta.saldo:.2f}")
         else:
             print("Nenhuma conta cadastrada.")
 
@@ -207,8 +198,8 @@ class SistemaBanco:
             print("Número da conta inválido.")
 
     def comando_criar_conta(self, cliente:Conta) -> None:
-        nova_conta:Conta = ContaCorrente.nova_conta(cliente, len(cliente._contas)+1)
-        cliente.adicionar_conta(nova_conta)
+        conta_criada = ContaCorrente.nova_conta(cliente, len(cliente._contas)+1)
+        cliente.adicionar_conta(conta_criada)
         print("\nConta criada com sucesso!")
 
     def ir_para_tela_cliente(self, cliente:PessoaFisica):
@@ -230,6 +221,7 @@ class SistemaBanco:
             match letra:
                 case "a": self.comando_acessar_conta(cliente)
                 case "c": self.comando_criar_conta(cliente)
+                case "q": print("Saindo...")
                 case _:   print("Opção inválida, tente novamente.")
 
     def comando_depositar(self, conta:Conta):
@@ -237,7 +229,7 @@ class SistemaBanco:
         if valor.isnumeric() and float(valor)>0:
             valor = float(valor)
             if conta.depositar(valor):
-                conta.cliente.realizar_transacao(conta, Deposito(valor))
+                conta._cliente.realizar_transacao(conta, Deposito(valor))
             else:
                 print("Depósito não realizado.")
         else:
@@ -255,7 +247,7 @@ class SistemaBanco:
             print("Valor inválido.")
 
     def comando_informar_saldo(self, conta:Conta):
-        saldo = conta._saldo
+        saldo = conta.saldo
         saques = conta.numero_saques if hasattr(conta, "numero_saques") else 0
         limite = conta._limite if hasattr(conta, "_limite") else 0
         limite_saques = conta._limite_saques if hasattr(conta, "_limite_saques") else 0
@@ -266,7 +258,7 @@ class SistemaBanco:
     def comando_historico(self, conta:Conta):
         print("Exibindo histórico de transações...")
         historico = conta._historico
-        if historico._transacoes:
+        if historico.transacoes:
             for transacao in historico._transacoes:
                 tipo = type(transacao).__name__
                 valor = transacao._valor
@@ -289,7 +281,7 @@ class SistemaBanco:
 
         letra = ""
         while not letra == "q":
-            letra = input(self.menu)
+            letra = input(menu)
             match letra:
                 case "d": self.comando_depositar(conta)
                 case "s": self.comando_sacar(conta)
@@ -298,17 +290,31 @@ class SistemaBanco:
                 case _:   print("Opção inválida, tente novamente.")
 
 
+def teste(clientes):
+    cliente = clientes[0]
+    conta = cliente._contas[0]
+    valor_deposito = 1000.0
+    conta.depositar(valor_deposito)
+
+
+
 def main():
-    cliente_teste = PessoaFisica(cpf="11235813",
-                                nome="Teste",
-                                data_nascimento="01/01/1900",
-                                endereco="logradouro, 123 - bairro - cidade/UF")
-    cliente_teste.adicionar_conta(ContaCorrente.nova_conta(cliente_teste, 1))
-    clientes = [cliente_teste]
+    clientes = []
+    #clientes = criando_base_inicial()
     sistema_banco = SistemaBanco(clientes=clientes)
+    #teste(clientes)
     while True:
         sistema_banco.ir_para_tela_inicial()
 
+def criando_base_inicial():
+    cliente_teste = PessoaFisica(cpf="123",
+                                nome="Teste",
+                                data_nascimento="01/01/1900",
+                                endereco="logradouro, 123 - bairro - cidade/UF")
+    nova_conta = ContaCorrente.nova_conta(cliente_teste, 1)
+    cliente_teste.adicionar_conta(nova_conta)
+    clientes = [cliente_teste]
+    return clientes
 
 if __name__ == "__main__":
     main()
