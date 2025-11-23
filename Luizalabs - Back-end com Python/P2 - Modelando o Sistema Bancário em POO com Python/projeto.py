@@ -78,7 +78,7 @@ class ContaCorrente(Conta):
 class Transacao(ABC):
     @abstractmethod
     def registrar(self, conta:Conta) -> None:
-        pass
+        conta._historico.adicionar_transacao(self)
 
 
 class Deposito(Transacao):
@@ -110,7 +110,17 @@ class Cliente:
         self._contas:list = contas
 
     def realizar_transacao(self, conta:Conta, transacao:Transacao):
-        pass
+        valor = transacao._valor
+        if transacao.__class__ == Saque:
+            conta._saldo -= valor
+            print(f"Saque de R$ {valor:.2f} realizado com sucesso!")
+        elif transacao.__class__ == Deposito:
+            conta._saldo += valor
+            print(f"Depósito de R$ {valor:.2f} realizado com sucesso!")
+        else:
+            print("Tipo de transação inválida.")
+            return
+        transacao.registrar(conta)
 
     def adicionar_conta(self, conta:Conta) -> None:
         nova_conta = Conta.adicionar_conta(self, conta)
@@ -136,18 +146,6 @@ class SistemaBanco:
     def __init__(self, clientes:list=[]):
         self._clientes:list = clientes
 
-    def _criar_usuario(self, cpf:int,) -> PessoaFisica:
-        nome = input("Insira o nome completo do novo usuário: ")
-        data_nascimento = input("Insira o nascimento do novo usuário (dd/mm/aaaa): ")
-        endereco = input("Insira endereço do novo usuário (logradouro, nro - bairro - cidade/UF): ")
-        novo_usuario = PessoaFisica(cpf=cpf,
-                                   nome=nome,
-                                   data_nascimento=data_nascimento,
-                                   endereco=endereco)
-        self._clientes.append(novo_usuario)
-        print("\nUsuario cadastrado!")
-        return novo_usuario
-
     @staticmethod
     def cpf_so_numero(cpf:str) -> str|bool:
         cpf = cpf.strip()
@@ -159,19 +157,35 @@ class SistemaBanco:
         else:
             return False
 
+    def _cliente_esta_cadastrado(self, cpf:int) -> PessoaFisica:
+        for cliente in self._clientes:
+            if cliente._cpf == cpf:
+                return cliente
+        return False
+
+    def comando_criar_usuario(self, cpf:int,) -> PessoaFisica:
+        nome = input("Insira o nome completo do novo usuário: ")
+        data_nascimento = input("Insira o nascimento do novo usuário (dd/mm/aaaa): ")
+        endereco = input("Insira endereço do novo usuário (logradouro, nro - bairro - cidade/UF): ")
+        novo_usuario = PessoaFisica(cpf=cpf,
+                                   nome=nome,
+                                   data_nascimento=data_nascimento,
+                                   endereco=endereco)
+        self._clientes.append(novo_usuario)
+        print("\nUsuario cadastrado!")
+        return novo_usuario
+
     def ir_para_tela_inicial(self) -> None:
         print("Bem-vindo!")
         cpf = input("Informe o seu CPF (somente números): ")
         cpf = self.cpf_so_numero(cpf)
         if cpf:
-            usuario = self._cliente_cadastrado(cpf)
+            usuario = self._cliente_esta_cadastrado(cpf)
             if not usuario:
-                usuario = self._criar_usuario(cpf)
+                usuario = self.comando_criar_usuario(cpf)
             self.ir_para_tela_cliente(usuario)
         else:
             print("CPF inválido. Tente novamente.")
-        return
-
 
     def printar_contas(self, cliente) -> None:
         contas = cliente._contas
@@ -181,9 +195,23 @@ class SistemaBanco:
         else:
             print("Nenhuma conta cadastrada.")
 
+    def comando_acessar_conta(self, cliente:PessoaFisica) -> None:
+        numero_conta = input("Informe o número da conta: ")
+        if numero_conta.isnumeric():
+            numero_conta = int(numero_conta)
+            if numero_conta <= len(cliente._contas):
+                self.ir_para_tela_conta(cliente._contas[numero_conta-1])
+            else:
+                print("Número da conta inválido.")
+        else:
+            print("Número da conta inválido.")
+
+    def comando_criar_conta(self, cliente:Conta) -> None:
+        nova_conta:Conta = ContaCorrente.nova_conta(cliente, len(cliente._contas)+1)
+        cliente.adicionar_conta(nova_conta)
+        print("\nConta criada com sucesso!")
 
     def ir_para_tela_cliente(self, cliente:PessoaFisica):
-        print(f"Bem-vindo, {cliente._nome}!")
         menu = """
         Escolha uma opção:
 
@@ -195,29 +223,57 @@ class SistemaBanco:
         menu = textwrap.dedent(menu)
         
         letra = ""
+        print(f"Bem-vindo, {cliente._nome}!")
         while not letra == "q":
             self.printar_contas(cliente)
             letra = input(menu)
             match letra:
-                # Acessar conta
-                case "a":
-                    numero_conta = input("Informe o número da conta: ")
-                    if numero_conta.isnumeric():
-                        numero_conta = int(numero_conta)
-                        if numero_conta <= len(cliente._contas):
-                            self.ir_para_tela_conta(cliente._contas[numero_conta-1])
-                    print("Número da conta inválido.")
+                case "a": self.comando_acessar_conta(cliente)
+                case "c": self.comando_criar_conta(cliente)
+                case _:   print("Opção inválida, tente novamente.")
 
-                # Criar conta
-                case "c":
-                    nova_conta:Conta = ContaCorrente.nova_conta(cliente, len(cliente._contas)+1)
-                    cliente.adicionar_conta(nova_conta)
-                    print("\nConta criada com sucesso!")
+    def comando_depositar(self, conta:Conta):
+        valor = input("Informe o valor do depósito: ")
+        if valor.isnumeric() and float(valor)>0:
+            valor = float(valor)
+            if conta.depositar(valor):
+                conta.cliente.realizar_transacao(conta, Deposito(valor))
+            else:
+                print("Depósito não realizado.")
+        else:
+            print("Valor inválido.")
 
-                case _:
-                    print("Opção inválida, tente novamente.")
-        return
-    
+    def comando_sacar(self, conta:Conta):
+        valor = input("Informe o valor do depósito: ")
+        if valor.isnumeric() and float(valor)>0:
+            valor = float(valor)
+            if conta.sacar(valor):
+                conta.cliente.realizar_transacao(conta, Saque(valor))
+            else:
+                print("Saque não realizado.")
+        else:
+            print("Valor inválido.")
+
+    def comando_informar_saldo(self, conta:Conta):
+        saldo = conta._saldo
+        saques = conta.numero_saques if hasattr(conta, "numero_saques") else 0
+        limite = conta._limite if hasattr(conta, "_limite") else 0
+        limite_saques = conta._limite_saques if hasattr(conta, "_limite_saques") else 0
+        print(f"Saldo: R$ {saldo:.2f}")
+        if limite:
+            print(f"Saque diário: {saques}/{limite_saques} | Limite por saque: R$ {limite:.2f}")
+
+    def comando_historico(self, conta:Conta):
+        print("Exibindo histórico de transações...")
+        historico = conta._historico
+        if historico._transacoes:
+            for transacao in historico._transacoes:
+                tipo = type(transacao).__name__
+                valor = transacao._valor
+                print(f"{tipo}: R$ {valor:.2f}")
+        else:
+            print("Nenhuma transação realizada.")
+        
     def ir_para_tela_conta(self, conta:Conta):
         menu = f"""
         Acessando conta {conta._numero}...
@@ -225,6 +281,7 @@ class SistemaBanco:
 
         [d] Depositar
         [s] Sacar
+        [i] Saldo
         [h] Histórico
         [q] Voltar
         => """
@@ -234,119 +291,11 @@ class SistemaBanco:
         while not letra == "q":
             letra = input(self.menu)
             match letra:
-                case "d": # depositar
-                    self.comando_depositar()
-                case "s": # sacar
-                    self.comando_sacar()
-                case "h": # histórico
-                    self.comando_historico()
-                case _:
-                    print("Opção inválida, tente novamente.")
-        return
-
-
-    def _cliente_cadastrado(self, cpf:int) -> PessoaFisica:
-        for cliente in self._clientes:
-            if cliente._cpf == cpf:
-                return cliente
-        return False
-
-    def comando_depositar(self):
-        pass
-
-    def comando_sacar(self):
-        pass
-
-    def comando_historico(self):
-        pass
-
-    def comando_criar_usuario():
-        pass
-
-
-    def main_loop(self):
-        while True:
-
-            opcao = input(self.menu)
-
-            if opcao == "d":
-                valor = float(input("Informe o valor do depósito: "))
-                saldo, extrato = depositar(saldo, valor, extrato)
-
-            elif opcao == "s":
-                valor = float(input("Informe o valor do saque: "))
-                saldo, extrato, numero_saques = sacar(saldo=saldo, valor=valor, extrato=extrato, limite=limite, numero_saques=numero_saques, limites_saques=LIMITE_SAQUES)
-
-            elif opcao == "e":
-                ver_extrato(saldo, extrato=extrato)
-
-            elif opcao == "u":
-                cpf:str = input("Digite o CPF: ")
-                cpf:int = cpf_str_p_int(cpf)
-                if cpf:
-                    if cpf_cadastrado(cpf):
-                        print("CPF já cadastrado.")
-                    else:
-                        usuarios = criar_usuario(cpf, usuarios)
-                else:
-                    print('CPF inválido')
-
-            elif opcao == "c":
-                cpf:str = input("Digite o CPF: ")
-                cpf:int = cpf_str_p_int(cpf)
-                if cpf:
-                    if cpf_cadastrado(cpf):
-                        contas = criar_conta_corrente(cpf,contas)
-                    else:
-                        print("Usuário não cadastrado.")
-                else:
-                    print('CPF inválido')
-
-            elif opcao == "l":
-                listar_contas()
-
-            elif opcao == "v":
-                listar_usuarios()
-
-            elif opcao == "q":
-                break
-
-            else:
-                print("Operação inválida, por favor selecione novamente a operação desejada.")
-
-
-
-
-def ver_extrato(saldo,/,*,extrato):
-    print("\n================ EXTRATO ================")
-    print("Não foram realizadas movimentações." if not extrato else extrato)
-    print(f"\nSaldo: R$ {saldo:.2f}")
-    print("==========================================")
-    return
-
-
-
-
-
-def criar_conta_corrente(cpf:int, contas=contas):
-    # O programa deve armazenar contas em uma lista, 
-    # uma conta é composta por: agência, número da conta e usuário.
-    # O número da conta é sequencial, iniciando em 1.
-    # O número da agência é fixo: "0001". 
-    # O usuário pode ter mais de uma conta, mas uma conta pertence a somente um usuário.
-    AGENCIA = "0001"
-    numero_conta = contas[-1]["numero_conta"] + 1
-    contas.append({"agencia":AGENCIA, 
-                   "numero_conta":numero_conta,
-                   "usuario":cpf})
-    return contas
-
-
-def listar_usuarios():
-    for usuario in usuarios:
-        print(usuario)
-    return
-
+                case "d": self.comando_depositar(conta)
+                case "s": self.comando_sacar(conta)
+                case "i": self.comando_informar_saldo(conta)
+                case "h": self.comando_historico(conta)
+                case _:   print("Opção inválida, tente novamente.")
 
 
 def main():
@@ -361,6 +310,5 @@ def main():
         sistema_banco.ir_para_tela_inicial()
 
 
-
-
-main()
+if __name__ == "__main__":
+    main()
