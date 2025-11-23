@@ -68,5 +68,81 @@ São profissionais que têm habilidades tanto em front-end quando em back-end, s
 
 ### O que é uma API?
 
-API ou Interface de Programação de Aplicações, é um conjunto de regras e definições que permite que diferentes aplicações de software ou componentes se comuniquem entre si.  
+**API (Interface de Programação de Aplicações)** é um conjunto de regras e definições que permite que diferentes aplicações de software ou componentes se comuniquem entre si.  
 Funciona como um intermediário, permitindo que pedidos sejam feitos e respostas sejam recebidas entre diferentes sistemas e softwares.
+
+### APIs no contexto da Web
+
+Na Web, as APIs são usadas para permitir a interação entre diferentes serviços e aplicações, como enviar dados de um usuário de um aplicativo para um servidor ou solicitar dados de um serviço externo (por exemplo, redes sociais, mapas, previsão do tempo)
+
+### Importância das APIs
+
+São cruciais para a construção de aplicações modernas e escaláveis.  
+Elas permitem a flexibilidade para integrar e expandir funcionalidades sem reinventar a roda.
+
+### Exemplos práticos
+
+**APIs de pagamento**: Facilita transações de comécio eletrônico através de diferentes plataformas de pagamentos.
+
+<https://vindi.github.io/api-docs/dist/#/>
+
+## Tipos de APIs - RESTful, SOAP e GrapQL
+
+### API RESTful
+
+RESTful refere-se a APIs que seguem os princípios do REST (*Representational State Transfer*).  
+São baseadas em padrões HTTP e utilizadas para interações web.
+
+#### Características de APIs RESTful
+
+* Uso dos métodos HTTP (*GET, POST, PUT, DELETE*) para operações CRUD (*Create, Read, Update, Delete*).
+* Curva de aprendizado menor.
+* Fácil de entender e implementar.
+
+### API SOAP
+
+SOAP (*Simple Object Access Protocol*) é um protocolo que define um padrão para a troca de mensagens baseadas em XML.
+
+<https://www.w3school.com/xml/xml_soap.asp>
+
+#### Características de APIs SOAP
+
+* Protocolo baseado em XML para troca de informações.
+* independente de linguagem e plataforma de transporte.
+* Suporte para operações complexas e segurança avançada.
+
+### GrapQL
+
+Uma linguagem de consulta para sua API, e um servidor capaz de executar essas consultas, retornando apenas os dados especificados.
+
+<http://stiodo.apollographql.com/public/SpaceX-pxxbxen/variant/current/explorer>
+
+#### Características de APIs GraphQL
+
+* Permite que os clientes especifiquem exatamente quais dados querem.
+* Eficiente na redução de solicitações e no tamanho dos dados transferidos.
+* Flexível e fortamente tipada, facilitando a evolução das APIs.
+
+### Escolheno o tipo certo de API
+
+A escolha depende das necessidades especificadas do projeto, dos recursos disponíveis e da expertise da equipe.  
+
+* **RESTful** é popular pela simplicidade,
+* **SOAP** é preferido para segurança e transações complexas,
+* **GraphQL** é ideal para aplicações que requerem dados dinâmicos e personalizados.
+
+## Verbos HTTP - GET, POST, PATCH, PUT e DELETE
+
+### Verbos HTTP em APIs RESTful
+
+Em APIs RESTful, os verbos HTTP têm papéis específicos que se alinham com as operações CRUD.  
+Esta abordagem padronizada permite que as APIs sejam intuitivas e previsíveis, facilitando a interação entre diferentes sistemas e aplicações.
+
+### Convenções RESTful
+
+* GET para leitura
+* POST para criação
+* PUT/PATCH para atualização  
+* DELETE para remoção
+
+Essas convenções são fundamentais para o design de uma API RESTful bem projetada.
