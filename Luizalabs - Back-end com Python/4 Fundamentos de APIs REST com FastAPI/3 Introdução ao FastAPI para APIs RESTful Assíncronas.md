@@ -70,3 +70,11 @@ import fastapi
 ```
 
 Se não acusar nenhum erro, é porque deu certo.
+
+Caso já tenha criado a sua env e deseja reativá-la, acesse a pasta via `cd` e:
+
+`poetry env activate`
+
+Caso só tenha adicionado os pacotes e dependências aos projeto Poetry mas ainda não tenha instalado na máquina:
+
+`poetry install`

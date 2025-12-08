@@ -4,9 +4,9 @@
 
 Referências: <https://fastapi.tiangolo.com/>
 
-dio-blog
-├ main.py
-├ poetry.lock
+dio-blog  
+├ main.py  
+├ poetry.lock  
 └ pyprojetc.toml
 
 main.py :
@@ -49,7 +49,7 @@ dio-blog
 | └
 ├ main.py
 ├ poetry.lock
-├ pyproject.toml
+└ pyproject.toml
 ```
 
 ## Rotas e endpoints em FastAPI - Path parameter
