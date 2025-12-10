@@ -2,9 +2,9 @@ from sqlalchemy import Integer
 from sqlalchemy import String
 from sqlalchemy import Table
 from sqlalchemy import Column
-from sqlalchemy.orm import declarative_base
+from sqlalchemy import ForeignKey
 from sqlalchemy.orm import relationship
-from sqlalchemy.orm import Session
+
 
 # Método CORE
 
@@ -19,8 +19,8 @@ def get_core_atletas_table(metadata):
         Column("peso", Integer),
         Column("altura", Integer),
         Column("sexo", String(1)),
-        Column("centro_treinamento_id", Integer),
-        Column("categoria_id", Integer)
+        Column("centro_treinamento_id", Integer, ForeignKey("centros_treinamento.id")),
+        Column("categoria_id", Integer, ForeignKey("categorias.id")),
     )
 
 # Método ORM
@@ -36,8 +36,8 @@ def get_orm_atletas_table(base):
         peso = Column(Integer)
         altura = Column(Integer)
         sexo = Column(String(1))
-        centro_treinamento_id = Column(Integer)
-        categoria_id = Column(Integer)
+        centro_treinamento_id = relationship("centros_treinamento", back_populates="atletas")
+        categoria_id = relationship
 
         def __repr__(self):
             return f"""Atletas(

@@ -7,16 +7,20 @@ from sqlalchemy.orm import declarative_base
 
 engine = create_engine('sqlite:///database/workout.db', echo=True)
 
+# CORE
+metadata = MetaData()
+get_core_centros_treinamento_table(metadata)
+get_core_atletas_table(metadata)
+get_core_categorias_table(metadata)
+
+# ORM
+Base = declarative_base()
+get_orm_centros_treinamento_table(Base)
+get_orm_atletas_table(Base)
+get_orm_categorias_table(Base)
+
 def create_core_db():
-    metadata = MetaData()
-    get_core_centros_treinamento_table(metadata)
-    get_core_atletas_table(metadata)
-    get_core_categorias_table(metadata)
     metadata.create_all(engine)
 
 def create_orm_db():
-    Base = declarative_base()
-    get_orm_centros_treinamento_table(Base)
-    get_orm_atletas_table(Base)
-    get_orm_categorias_table(Base)
     Base.metadata.create_all(engine)

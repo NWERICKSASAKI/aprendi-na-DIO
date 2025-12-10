@@ -1,4 +1,6 @@
 from fastapi import APIRouter
+from fastapi import status
+from schemas.categorias import CategoriasIn
 
 router = APIRouter(prefix="/categorias")
 
@@ -6,9 +8,9 @@ router = APIRouter(prefix="/categorias")
 def consultar_categorias():
     return {"message": "Consultando categorias!"}
 
-@router.post("/")
-def criar_categoria():
-    return {"message": "Criando categoria!"}
+@router.post("/", status_code=status.HTTP_201_CREATED)
+def criar_categoria(post: CategoriasIn):
+    return {"message": post}
 
 @router.get("/{id}")
 def consultar_categoria_por_id():
