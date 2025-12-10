@@ -8,7 +8,7 @@ from sqlalchemy.orm import relationship
 
 # Método CORE
 
-def get_core_atletas_table(metadata):
+def core_get_atletas_table(metadata):
     return Table(
         "atletas",
         metadata,
@@ -25,7 +25,7 @@ def get_core_atletas_table(metadata):
 
 # Método ORM
 
-def get_orm_atletas_table(base):
+def orm_get_atletas_table(base):
 
     class Atletas(base):
         __tablename__ = "atletas"
@@ -36,8 +36,10 @@ def get_orm_atletas_table(base):
         peso = Column(Integer)
         altura = Column(Integer)
         sexo = Column(String(1))
-        centro_treinamento_id = relationship("centros_treinamento", back_populates="atletas")
-        categoria_id = relationship
+        centro_treinamento_id = Column(Integer, ForeignKey("centros_treinamento.id"))
+        categoria_id = Column(Integer, ForeignKey("categorias.id"))
+        #centro_treinamento_id = relationship("centros_treinamento", back_populates="atletas")
+        #categoria_id = relationship("categorias", back_populates="atletas")
 
         def __repr__(self):
             return f"""Atletas(

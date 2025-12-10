@@ -6,7 +6,7 @@ from sqlalchemy import Column
 
 # Método CORE
 
-def get_core_centros_treinamento_table(metadata):
+def core_get_centros_treinamento_table(metadata):
     return Table(
         "centros_treinamento",
         metadata,
@@ -18,13 +18,13 @@ def get_core_centros_treinamento_table(metadata):
 
 # Método ORM
 
-def get_orm_centros_treinamento_table(base):
+def orm_get_centros_treinamento_table(base):
 
     class CentrosTreinamento(base):
         __tablename__ = "centros_treinamento"
         id = Column(Integer, primary_key=True, autoincrement=True)
         nome = Column(String(20))
-        endereco = Column(String(60)),
+        endereco = Column(String(60))
         proprietario = Column(String(30))
 
         def __repr__(self):

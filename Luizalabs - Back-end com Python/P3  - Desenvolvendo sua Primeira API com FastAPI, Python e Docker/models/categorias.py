@@ -5,7 +5,7 @@ from sqlalchemy import Column
 
 # Método CORE
 
-def get_core_categorias_table(metadata):
+def core_get_categorias_table(metadata):
     return Table(
         "categorias",
         metadata,
@@ -15,7 +15,7 @@ def get_core_categorias_table(metadata):
 
 # Método ORM
 
-def get_orm_categorias_table(base):
+def orm_get_categorias_table(base):
 
     class Categorias(base):
         __tablename__ = "categorias"

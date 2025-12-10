@@ -1,26 +1,44 @@
 from sqlalchemy import create_engine
-from sqlalchemy import MetaData
-from models.atletas import get_core_atletas_table, get_orm_atletas_table
-from models.categorias import get_core_categorias_table, get_orm_categorias_table
-from models.centros_treinamento import get_core_centros_treinamento_table, get_orm_centros_treinamento_table
-from sqlalchemy.orm import declarative_base
 
 engine = create_engine('sqlite:///database/workout.db', echo=True)
 
-# CORE
+#############
+#   CORE    
+
+from sqlalchemy import MetaData
 metadata = MetaData()
-get_core_centros_treinamento_table(metadata)
-get_core_atletas_table(metadata)
-get_core_categorias_table(metadata)
 
-# ORM
-Base = declarative_base()
-get_orm_centros_treinamento_table(Base)
-get_orm_atletas_table(Base)
-get_orm_categorias_table(Base)
+def core_load_tables():
+    from models.atletas import core_get_atletas_table
+    from models.categorias import core_get_categorias_table
+    from models.centros_treinamento import core_get_centros_treinamento_table
 
-def create_core_db():
+    core_get_centros_treinamento_table(metadata)
+    core_get_categorias_table(metadata)
+    core_get_atletas_table(metadata)
+
+def core_create_db():
+    core_load_tables
     metadata.create_all(engine)
 
-def create_orm_db():
+
+#############
+#   ORM    
+
+from sqlalchemy.orm import declarative_base
+Base = declarative_base()
+
+def orm_load_tables():
+    from models.atletas import orm_get_atletas_table
+    from models.categorias import orm_get_categorias_table
+    from models.centros_treinamento import orm_get_centros_treinamento_table
+
+    Centros_Treinamento = orm_get_centros_treinamento_table(Base)
+    Categorias = orm_get_categorias_table(Base)
+    Atletas = orm_get_atletas_table(Base)
+    return Centros_Treinamento, Categorias, Atletas
+
+def orm_create_db():
     Base.metadata.create_all(engine)
+
+Centros_Treinamento, Categorias, Atletas = orm_load_tables()
