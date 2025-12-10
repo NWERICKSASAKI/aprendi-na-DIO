@@ -4,18 +4,24 @@ from schemas.categorias import CategoriasIn
 
 from services import categorias
 
-router = APIRouter(prefix="/categorias")
+core_router = APIRouter(prefix="/core/categorias")
 
-@router.get("/")
+
+
+
+
+orm_router = APIRouter(prefix="/orm/categorias")
+
+@orm_router.get("/")
 def consultar_categorias():
-    return categorias.core_get_all() 
+    return categorias.orm_get_all() 
     # return {"message": "Consultando categorias!"}
 
-@router.post("/", status_code=status.HTTP_201_CREATED)
+@orm_router.post("/", status_code=status.HTTP_201_CREATED)
 def criar_categoria(post: CategoriasIn):
     categorias.orm_post(post)
     return {"message": post}
 
-@router.get("/{id}")
+@orm_router.get("/{id}")
 def consultar_categoria_por_id():
     return {"message": "Consultando Categoria por id!"}

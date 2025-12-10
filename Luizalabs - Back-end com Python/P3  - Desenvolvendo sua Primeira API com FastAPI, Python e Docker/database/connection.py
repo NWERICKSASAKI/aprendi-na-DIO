@@ -18,7 +18,7 @@ def core_load_tables():
     core_get_atletas_table(metadata)
 
 def core_create_db():
-    core_load_tables
+    core_load_tables()
     metadata.create_all(engine)
 
 
