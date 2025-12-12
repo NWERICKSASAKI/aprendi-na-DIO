@@ -5,7 +5,15 @@ from controllers import centros_treinamento
 from controllers import database
 
 app = FastAPI()
-app.include_router(atletas.router)
-app.include_router(categorias.router)
-app.include_router(centros_treinamento.router)
+
 app.include_router(database.router)
+
+app.include_router(atletas.router)
+app.include_router(categorias.core_router)
+app.include_router(centros_treinamento.router)
+app.include_router(database.core_router)
+
+# app.include_router(atletas.orm_router)
+app.include_router(categorias.orm_router)
+# app.include_router(centros_treinamento.orm_router)
+app.include_router(database.orm_router)

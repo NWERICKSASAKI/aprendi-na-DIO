@@ -8,10 +8,8 @@ from sqlalchemy import text
 ### CORE #########################
 
 
-def core_get(id:int=0):
+def core_get_all():
     stmt = text("SELECT * FROM categorias")
-    if id:
-        stmt = text("SELECT * FROM categorias WHERE id=:id").bindparams(id=id)
     with engine.connect() as conn:
         results = conn.execute(stmt).mappings().all()
         return [dict(row) for row in results]
@@ -22,7 +20,11 @@ def core_post(json_data):
         conn.execute(stmt, {"nome": json_data.nome})
         conn.commit()
 
-        
+def core_get(id):
+    stmt = text("SELECT * FROM categorias WHERE id=:id").bindparams(id=id)
+    with engine.connect() as conn:
+        results = conn.execute(stmt)
+        return [result for result in results.mappings()]    
 
 ### ORM  #########################
 
@@ -42,3 +44,9 @@ def orm_post(json_data):
         )
         session.add(nova_categoria)
         session.commit()
+
+def orm_get(id):
+    stmt = select(Categorias).where(Categorias.id == id)
+    with Session(engine) as session:
+        results = session.execute(stmt).scalars().all()
+        return results
