@@ -24,10 +24,21 @@ def core_post(json_data):
         conn.commit()
 
 # GET /atletas/
-def core_get_all():
-    stmt = text("SELECT * FROM atletas")
+def core_get_all(nome, cpf):
+    stmt_txt = "SELECT * FROM atletas"
+    fields = {}
+    if nome != None:
+        fields["nome"] = nome
+        stmt_txt += " WHERE nome LIKE :nome"
+    if cpf != None:
+        fields["cpf"] = cpf
+        if "WHERE" in stmt_txt:
+            stmt_txt += " AND cpf=:cpf"
+        else:
+            stmt_txt += " WHERE cpf=:cpf"
+    stmt = text(stmt_txt)
     with engine.connect() as conn:
-        results = conn.execute(stmt).mappings().all()
+        results = conn.execute(stmt, fields).mappings().all()
         return [dict(row) for row in results]
 
 # GET /atletas/{id}
@@ -90,11 +101,16 @@ def orm_post(json_data):
         session.commit()
 
 # GET /atletas/
-def orm_get_all():
+def orm_get_all(nome, cpf):
+    fields = []
     stmt = select(Atletas)
+    if nome != None:
+        stmt = stmt.where(Atletas.nome.like(nome))
+    if cpf != None:
+        stmt = stmt.where(Atletas.cpf == cpf)
     # with Session(engine) as session:
     with engine.connect() as conn:
-        results = conn.execute(stmt).mappings().all()
+        results = conn.execute(stmt, fields).mappings().all()
         return results
 
 # GET /atletas/{id}  

@@ -11,8 +11,8 @@ def criar_atleta(json_data: AtletasIn):
     return {"message": f"Atleta! {json_data.nome} criado com sucesso."}
 
 @core_router.get("/")
-def consultar_atletas():
-    return atletas.core_get_all()
+def consultar_atletas(nome:str|None=None, cpf:str|None=None):
+    return atletas.core_get_all(nome, cpf)
 
 @core_router.get("/{id}")
 def consultar_atleta_por_id(id: int):
@@ -37,8 +37,8 @@ def criar_atleta(json_data: AtletasIn):
     return {"message": f"Atleta {json_data.nome} criado!"}
 
 @orm_router.get("/")
-def consultar_atletas():
-    return atletas.orm_get_all()
+def consultar_atletas(nome:str|None=None, cpf:str|None=None):
+    return atletas.orm_get_all(nome, cpf)
 
 @orm_router.get("/{id}")
 def consultar_atleta_por_id(id: int):
