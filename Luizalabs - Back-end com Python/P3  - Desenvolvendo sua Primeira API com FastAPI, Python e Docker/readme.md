@@ -81,3 +81,8 @@ Através do uso da FastAPI é proposto consultar e editar o banco de dados a par
 - Adicionar paginação utilizando a lib: fastapi-pagination
     - limit e offset
 ```
+
+## Detalhes sobre a finalização:
+
+Foi elaborado o banco de dados em sqlite e a API utilizando ambos os métodos CORE e ORM para fins de prática.  
+Os desafios propostos não foram realizados por não houver aulas previamente abordando o assunto.
