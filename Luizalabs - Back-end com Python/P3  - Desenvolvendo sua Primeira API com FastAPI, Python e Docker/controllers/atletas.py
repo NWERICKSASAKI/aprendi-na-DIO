@@ -1,23 +1,52 @@
 from fastapi import APIRouter
+from services import atletas
+from schemas.atletas import AtletasIn
 
-router = APIRouter(prefix="/atletas")
+core_router = APIRouter(prefix="/core/atletas")
 
-@router.post("/")
-def criar_atleta():
-    return {"message": "Criando Atleta!"}
+@core_router.post("/")
+def criar_atleta(json_data: AtletasIn):
+    atletas.core_post(json_data)
+    return {"message": f"Atleta! {json_data.nome} criado com sucesso."}
 
-@router.get("/")
+@core_router.get("/")
 def consultar_atletas():
-    return {"message": "Consultando atletas!"}
+    return atletas.core_get_all()
 
-@router.get("/{id}")
-def consultar_atleta_por_id():
-    return {"message": "Consultando Atleta por id!"}
+@core_router.get("/{id}")
+def consultar_atleta_por_id(id: int):
+    return atletas.core_get(id)
 
-@router.patch("/{id}")
-def editar_atleta_por_id():
+@core_router.patch("/{id}")
+def editar_atleta_por_id(json_data: AtletasIn, id: int):
     return {"message": "Editando Atleta por id!"}
 
-@router.delete("/{id}")
-def consultar_atleta_por_id():
-    return {"message": "Deletando Atleta por id!"}
+@core_router.delete("/{id}")
+def consultar_atleta_por_id(id: int):
+    atletas.core_delete(id)
+    return {"message": f"Deletando Atleta do {id} !"}
+
+
+orm_router = APIRouter(prefix="/orm/atletas")
+
+@orm_router.post("/")
+def criar_atleta(json_data: AtletasIn):
+    atletas.orm_post(json_data)
+    return {"message": f"Atleta {json_data.nome} criado!"}
+
+@orm_router.get("/")
+def consultar_atletas():
+    return atletas.orm_get_all()
+
+@orm_router.get("/{id}")
+def consultar_atleta_por_id(id: int):
+    return atletas.orm_get(id)
+
+@orm_router.patch("/{id}")
+def editar_atleta_por_id(id: int):
+    return {"message": "Editando Atleta por id!"}
+
+@orm_router.delete("/{id}")
+def consultar_atleta_por_id(id: int):
+    atletas.orm_delete(id)
+    return {"message": f"Deletando Atleta do id {id} !"}

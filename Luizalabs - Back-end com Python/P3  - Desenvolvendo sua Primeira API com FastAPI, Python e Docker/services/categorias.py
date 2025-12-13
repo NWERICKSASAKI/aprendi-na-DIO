@@ -7,19 +7,21 @@ from sqlalchemy import text
 
 ### CORE #########################
 
-
+# GET /categorias/
 def core_get_all():
     stmt = text("SELECT * FROM categorias")
     with engine.connect() as conn:
         results = conn.execute(stmt).mappings().all()
         return [dict(row) for row in results]
 
+# POST /categorias/
 def core_post(json_data):
     with engine.connect() as conn:
         stmt = text("INSERT INTO categorias (nome) VALUES (:nome)")
         conn.execute(stmt, {"nome": json_data.nome})
         conn.commit()
 
+# GET /categorias/{id}
 def core_get(id):
     stmt = text("SELECT * FROM categorias WHERE id=:id").bindparams(id=id)
     with engine.connect() as conn:
@@ -29,7 +31,7 @@ def core_get(id):
 ### ORM  #########################
 
 
-
+# GET /categorias/
 def orm_get_all():
     stmt = select(Categorias)
     # with Session(engine) as session:
@@ -37,6 +39,7 @@ def orm_get_all():
         results = conn.execute(stmt).mappings().all()
         return results
 
+# POST /categorias/
 def orm_post(json_data):
     with Session(engine) as session:
         nova_categoria = Categorias(
@@ -45,6 +48,7 @@ def orm_post(json_data):
         session.add(nova_categoria)
         session.commit()
 
+# GET /categorias/{id}
 def orm_get(id):
     stmt = select(Categorias).where(Categorias.id == id)
     with Session(engine) as session:
