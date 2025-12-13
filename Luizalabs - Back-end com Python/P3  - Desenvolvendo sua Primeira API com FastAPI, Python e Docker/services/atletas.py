@@ -38,7 +38,29 @@ def core_get(id):
         return [result for result in results.mappings()]    
 
 # PATCH /atletas/{id}
+def core_patch(json_data, id):
+    fields = {}
+    dic_data = json_data.model_dump()
+    list_key = list(dic_data.keys())
+    list_values = list(dic_data.values())
 
+    for i in range(len(list_values)):
+        if list_values[i] != None:
+            fields[list_key[i]] = list_values[i]
+    
+    clausulas = ", ".join([f"{key}=:{key}" for key in fields.keys()])
+
+    stmt = text(f"""
+        UPDATE atletas 
+        SET {clausulas}
+        WHERE id=:id
+    """)
+
+    fields["id"] = id
+
+    with engine.connect() as conn:
+        conn.execute(stmt, fields)
+        conn.commit()
 
 # DELETE /atletas/{id}
 def core_delete(id):
@@ -46,6 +68,7 @@ def core_delete(id):
     with engine.connect() as conn:
         conn.execute(stmt)
         conn.commit()
+
 
 ### ORM  #########################
 
@@ -82,7 +105,14 @@ def orm_get(id):
         return results
 
 # PATCH /atletas/{id}
-
+def orm_patch(json_data, id):
+    with Session(engine) as session:
+        atleta = session.get(Atletas, id)
+        dic_data = json_data.model_dump()
+        for key, value in dic_data.items():
+            if value is not None:
+                setattr(atleta, key, value)
+        session.commit()
 
 # DELETE /atletas/{id}
 def orm_delete(id):

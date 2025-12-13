@@ -31,7 +31,7 @@ def orm_get_atletas_table(base):
         __tablename__ = "atletas"
         id = Column(Integer, primary_key=True, autoincrement=True)
         nome = Column(String(50))
-        cpf = Column(String(11), unique=True)
+        cpf = Column(String(11), unique=True, nullable=False)
         idade = Column(Integer)
         peso = Column(Integer)
         altura = Column(Integer)

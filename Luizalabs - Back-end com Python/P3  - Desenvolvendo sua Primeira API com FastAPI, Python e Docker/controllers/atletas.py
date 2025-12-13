@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 from services import atletas
 from schemas.atletas import AtletasIn
+from schemas.atletas import AtletasEdit
 
 core_router = APIRouter(prefix="/core/atletas")
 
@@ -18,13 +19,14 @@ def consultar_atleta_por_id(id: int):
     return atletas.core_get(id)
 
 @core_router.patch("/{id}")
-def editar_atleta_por_id(json_data: AtletasIn, id: int):
-    return {"message": "Editando Atleta por id!"}
+def editar_atleta_por_id(json_data: AtletasEdit, id: int):
+    atletas.core_patch(json_data, id)
+    return {"message": f"Editando Atleta do id {id} !"}
 
 @core_router.delete("/{id}")
 def consultar_atleta_por_id(id: int):
     atletas.core_delete(id)
-    return {"message": f"Deletando Atleta do {id} !"}
+    return {"message": f"Deletando Atleta do do {id} !"}
 
 
 orm_router = APIRouter(prefix="/orm/atletas")
@@ -43,7 +45,8 @@ def consultar_atleta_por_id(id: int):
     return atletas.orm_get(id)
 
 @orm_router.patch("/{id}")
-def editar_atleta_por_id(id: int):
+def editar_atleta_por_id(json_data: AtletasEdit, id: int):
+    atletas.orm_patch(json_data, id)
     return {"message": "Editando Atleta por id!"}
 
 @orm_router.delete("/{id}")
