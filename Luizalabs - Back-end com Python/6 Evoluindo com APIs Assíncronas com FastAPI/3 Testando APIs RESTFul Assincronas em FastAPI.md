@@ -78,7 +78,7 @@ DIO-BLOG
  |
  ├ .gitignore
  ├ poetry.lock
- └ pyporject.toml
+ └ pyproject.toml
 ```
 
 `conftest.py`:
