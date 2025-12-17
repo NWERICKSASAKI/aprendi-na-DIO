@@ -1,0 +1,15 @@
+# 4 Deploy de uma API FastAPI Assíncrona
+
+## Criando o repositório e o servidor web
+
+Para fazer o deploy da API vamos utilizar o <http://dashboard.render.com>
+
+Após criar conta e logar → no menu de topo clique em `New +` → [Web Service](https://dashboard.render.com/web/new).  
+ 
+1. Víncule à sua conta GitHub caso não o tenha feito.  
+2. Selecione o repositório
+3. Configure a `Language` pra Python 3
+4. No comando de `Build Command` deixe `poetry install`
+5. No `Start Command` deixe `uvicorn src.main:app --host 0.0.0.0 --port $PORT`, conforme [documentação](https://render.com/docs/deploy-fastapi)
+6. `Instance Type`: `Free`
+7. `Deploy Web Service`
