@@ -218,7 +218,7 @@ async def test_create_post_not_authenticated_fail(client: AsyncClient):
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 ```
 
-`DIO-BLOG/tests/integration/controllers/post/` `test_readl_all.py`:
+`DIO-BLOG/tests/integration/controllers/post/` `test_read_all.py`:
 
 ```py
 import pytest

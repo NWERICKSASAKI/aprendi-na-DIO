@@ -8,6 +8,7 @@ Quando acessar a end-point sem o token retornar Autorização inválida e não e
 ## Uso de tokens para autenticação
 
 `auth.py`:
+
 ```py
 from fastapi import APIRouter
 
@@ -23,6 +24,7 @@ async def login(data: LoginIn):
 ```
 
 `schemas/auth.py`:
+
 ```py
 from pydantic import BaseModel
 
@@ -32,6 +34,7 @@ class LoginIn(BaseModel):
 ```
 
 `views/auth.py`:
+
 ```py
 from pydantic import BaseModel
 
@@ -40,6 +43,7 @@ class LoginOut(BaseModel):
 ```
 
 `security.py`:
+
 ```py
 import tim
 from typing import Annotated
@@ -134,12 +138,13 @@ def login_required(current_user: Annotated[dict[str, int], Dedends(get_current_u
 ```
 
 `main.py`:
+
 ```py
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from controllers import post
+from controllers import auth, post
 from database import database, engine, metadata
 
 
@@ -157,8 +162,8 @@ app.include_router(auth.router)
 app.include_router(post.router)
 ```
   
-  
 `controllers/post.py`:
+
 ```py
 from fastapi import APIRouter, Depends, status
 
@@ -195,6 +200,7 @@ async def delete_post(id: int):
 ```
 
 No Insonia, ir no método de autenticação e selecionar `Bearer Token`:
+
 * `ENABLED`,
 * `TOKEN` você pode digitar `response` e selecionar `body attribute`, clica nele vermelho e na opção de `Request` selecionar `[Auth] POST login` e em `Filter (JSONPath or XPATH)` = `$.access_token` e em `Trigger Behavior` marca `Always - resend request when needed`,
 * `PREFIX` = `Bearer`

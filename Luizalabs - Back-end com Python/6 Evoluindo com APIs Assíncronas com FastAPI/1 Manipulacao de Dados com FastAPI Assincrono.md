@@ -10,7 +10,8 @@ Referência:
 
 *P.S: O Código desta aula foi alterado posteriormente em aulas seguinte, você está vendo o código final.*
 
-`models/post.py`
+`models/post.py`:
+
 ```py
 import sqlalchemy as sa
 from database import metadata
@@ -24,11 +25,10 @@ posts = sa.Table(
     sa.Column('published_at', sa.DateTime, nullable=True),
     sa.Column('published', sa.Bollean, default=False),
     )
-
 ```
 
-
 `main.py` (porém ficou obsoleto):
+
 ```py
 import databases
 import sqlalchemy as sa
@@ -92,6 +92,7 @@ app.include_router(post.router)
 Criando modelos com Pydantic com `In` e `Out` ou `request` e `response`  
 
 `schemas/post.py`:
+
 ```py
 from datetime import datetime
 from pydantic import BaseModel
@@ -104,6 +105,7 @@ class PostIn(BaseModel):
 ```
 
 `views/post.py`:
+
 ```py
 from datetime import datetime
 from pydantic import BaseModel
@@ -146,6 +148,7 @@ async def create_post(post: PostIn):
 ```
 
 `database.py`:
+
 ```py
 import databases
 import sqlalchemy as sa
@@ -161,5 +164,6 @@ engine = sa.create_engine(DATABASE_URL, connect_arg={'check_same_thread': False}
 
 Vídeo apresentando a solução já completa.
 Coisas relavantes:
+
 * `raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")`
 * `post.model_dump(exclude_unset=True)` <- remove vamos passados como `None`
