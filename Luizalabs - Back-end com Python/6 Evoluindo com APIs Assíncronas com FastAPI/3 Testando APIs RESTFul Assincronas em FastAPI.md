@@ -129,11 +129,10 @@ async def client(db):
 async def access_token(client: AsyncClient):
     response = await client.post("/auth/login", json={"user_id": 1})
     return response.json()["access_token"]
-
-
 ```
 
 `database.py`:
+
 ```py
 import os
 import databases

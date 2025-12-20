@@ -364,3 +364,274 @@ app.include_router(post.router)
 
 [...]
 ```
+
+## Adicionando pydantic settings ao nosso projeto
+
+Antes disso, correção de código na `views/post.py`:
+
+```py
+from pydantic import AwareDatetime, BaseModel, NaiveDatetime
+
+class PostOut(BaseModel):
+    id: int
+    title: str
+    content: str
+    published_at: AwareDatetime | NaiveDatetime | None
+```
+
+`src/config.py`:
+
+```py
+from pydantic import BaseSettings, SettingsConfigDict
+
+class Settings(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=".env", # por padrão ler um arquivo com *.env na raiz do projeto
+        extra="ignore", # ignorar todas as chaves extras lá do .env
+        env_file_encoding="utf-8")
+
+    database_url: str
+    environment: str = "production"
+
+settings = Settings()
+```
+
+`pyproject.toml`:
+
+```toml
+[tool.poetry.dependencies]
+.
+.
+.
+pydantic-settings = "*"
+
+```
+
+A ideia é do Settings é fornecer uma classe que é uma base de configuração junto com uma configuração por dicionário, para podermos automatizar processo de leitura de variável de ambienteou arquivos de configuração.  
+
+Não versionar o arquivo .env, pois pode haver chaves, tokens e senhas.
+
+```env
+ENVIRONMENT="local"
+DATABASE_URL="sqlite:///./blog.db"
+```
+
+No arquivo `database.py`:
+
+```py
+import databases
+import sqlalchemy as sa
+
+from src.config import settigns
+
+
+database = databases.Database(settings.database_url)
+metadata = sa.Metadata()
+
+if settings.environment == 'production':
+    engine = sa.create_engine(settings.database_url)
+else:
+    engine = sa.create_engine(settings.database_url, connect_args={"check_same_thread":False})
+```
+
+`conftest.py`:
+
+```py
+import asyncio
+
+import pytest_asyncio
+from httpx import ASGITransport, AsyncClient
+from src.config import settings
+
+settings.database_url = 'sqlite:///test.db'
+
+@pytest_asyncio.fixture
+async def db(request):
+    from src.database import database, engine, metadata
+    from src.models.post import posts
+
+    await database.connect()
+    metadaa.create_all(engine)
+
+    def teardown():
+        async def _teardown():
+            await database.disconnect()
+            metadata.drop_all(engine) 
+
+        asyncio.run(_teardown())
+
+    request.addfinalizer(teardown)
+
+@pytest_asyncio.fixture
+async def client(db):
+    from src.main import app
+
+    transport = ASGITransport(app=app)
+    headers = {
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+
+    }
+    async with AsyncClient(base_url = "http://test", transport=transport, headers=headers) as client:
+        yield client
+
+@pytest_asyncio.fixture
+async def access_token(client: AsyncClient):
+    response = await client.post("/auth/login", json={"user_id": 1})
+    return response.json()["access_token"]
+```
+
+## Configurando o Alembic
+
+No `src/main.py` vamos remover os import de `src.database (engine e metadata)`:
+
+```py
+from contextlib import asynccontextmanager
+from fastapi import FastAPI, Request
+from fastapi.middleware import CORSMiddleware
+from fastapi.responses import JSONResponse
+
+from src.controllers import auth, post
+from src.database import database
+from src.exceptions import NotFoundPostError
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await database.connect()
+    yield
+    await database.disconnect()
+
+tags_metadata = [
+    {
+        "name": "auth",
+        "description": "Operações para autenticação.",
+    },
+    {
+        "name": "post",
+        "description": "Operações para manter posts",
+        "externalDocs": {
+            "description": "Documentação externa para Posts.api",
+            "url": "https://post-api.com/",
+        },
+    },
+]
+
+servers=[
+    {"url": "https://servidor-de-teste.com", "description": "Stagins environment"},
+    {"url": "https://servidor-de-producao.com", "description": "Production environment"},
+]
+
+description = """
+DIO blog API ajuda você a criar seu blog pessoal
+
+## Posts
+
+Você será capaz de fazer:
+
+* **Criar posts**
+* **Recuperar posts**
+* **Recuperar posts por ID**
+* **Atualizar posts**
+* **Deletar posts**
+
+[...]
+"""
+
+app = FastAPI(
+    title = "Dio blog API",
+    version = "1.0.2", 
+    summary = "API para blog pessoal.",
+    description = description,
+    openapi_url = None,
+    openapi_tags=tags_metadata,
+    servers=servers,
+    redoc_url = None,
+    lifespan = lifespan,
+    )
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.include_router(auth.router, tags=["auth"])
+app.include_router(post.router, tags="post")
+
+@app.exception_handler(NotFoundPostError)
+async def not_found_post_exception_handdler(request: Request, exc: NotFoundPostError):
+    return JSONResponse(
+        status_code=status.status_code,
+        content={"detail": exc.message},
+    )
+```
+
+### Vamos falar de Migration
+
+Convém quando vai fazer a migração quando se utiliza um Framework em Python que utiliza o SQLAlchemy: **Alembic**
+
+`poetry add "alembic=*"`
+
+Comandos:
+
+```bash
+alembic init migration # para criar a pasta e um arquivo alembic.ini
+alembic revision --autogenerate -m "Add initial tables"
+alembic upgrade head
+```
+
+O `alembic init migration` é usado para criar a pasta e arquivos  
+Ao se criar a pasta, terá um arquivo `migration/env.py`, precisará editá-la:
+
+```py
+from src.config import setting
+
+[...]
+
+config = context.config
+# Interpret the config file for Python logging.
+# This line sets up loggers basically.
+if config.config_file_name is not None:
+    fileConfig(config.config_file_name)
+
+from src.database import engine, metadata
+from src.models.post import posts
+
+target_metadata = metadata # padrão vem None. 
+# Alterando Assim o Alembic vai saber quais são os campos da tabela, os tipos de campos e tipo de migração que precisará criar. 
+
+def run_migrations_offline() -> None:
+    [...]
+    url = settings.database_url
+    [...]
+
+[...]
+
+def run_migrations_online() -> None:
+    [...]
+    connectable = engine
+```
+
+O comando `alembic revision --autogenerate -m "Add initial tables"` gera a migração.  
+
+O `--autogenerate` fará a leitura através do `metadata` para ler os campos e mapeamento para o Alembic criar no banco de dados. Dando tudo certo ele gera um arquivo na pasta `migrations/versions`.  
+
+Por fim `alembic upgrade head` atualiza o banco de dados. No nosso banco de dados vai ter uma tabela nova chamada `alembic_version` que vai guardar qual o hash (revisão) da última *migration* executada.
+
+Se tiver o Render Pro, no campo `Pro-Deploy Command` se colocaria o `alembic upgrade head`.
+
+## Adicionando script de inicialização no Render
+
+`render-deploy.sh`:
+
+```sh
+#!/usr/bin/env bash
+set -e
+
+alembic upgrade head
+uvicorn src.main:app --host 0.0.0.0 --port $PORT
+```
+
+Lá no Render coloque no `Start Command`: `source render-deploy.sh`
