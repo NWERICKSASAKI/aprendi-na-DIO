@@ -1,0 +1,27 @@
+[project]
+name = "p4_api_bancaria_fastapi"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Erick Sasaki",email = "erick_sasaki@hotmail.com"}
+]
+readme = "README.md"
+package-mode = false
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi (>=0.127.0,<0.128.0)",
+    "uvicorn (>=0.40.0,<0.41.0)",
+    "sqlalchemy (>=2.0.45,<3.0.0)"
+]
+
+[dependency-groups]
+dev = [
+    "pytest (>=9.0.2,<10.0.0)",
+    "pytest-asyncio (>=1.3.0,<2.0.0)",
+    "httpx (>=0.28.1,<0.29.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"

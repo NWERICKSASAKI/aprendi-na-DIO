@@ -23,3 +23,92 @@ Para a realização deste desafio, deve ser atendido aos seguintes requisitos t�
 - **Validação das operações:** Não permita depósitos e saques com valores negativos, valide se o usuário possui saldo para realizar o saque.
 - **Segurança:** Implemente autenticação usando JWT para proteger os endpoints que necessitam de acesso autenticado.
 - **Documentação com OpenAPI:**  Certifique-se de que sua API esteja bem documentada, incluindo descrições adequadas para cada endpoint, parâmetros e modelos de dados.
+
+## Resolução do Projeto
+
+Devido a complexidade do projeto decidi separar por etapas:
+
+- [ ] Dar um `poetry init` e fazer as configurações iniciais (fastapi, uvicorn)
+- [ ] Adicionar algumas dependências iniciais:
+
+```bash
+poetry add 'fastapi=*'
+poetry add "uvicorn[standard]"
+```
+
+- [ ] Configurar o interpretador com base no `path` do executador do Python da env
+
+### Referência
+
+<https://github.com/digitalinnovationone/trilha-python-dio/tree/main/13%20-%20APIs%20Ass%C3%ADncronas%20com%20FastAPI/dio-blog>
+
+### Estruturas de pasta
+
+```txt
+P4 - Criando sua API Bancária Assíncrona com FastAPI
+ |
+ ├─ src
+ |   |
+ |   ├─ controllers
+ |   |   |
+ |   |   ├─ cliente.py
+ |   |   ├─ conta_corrente.py
+ |   |   ├─ conta.py
+ |   |   ├─ endereco.py
+ |   |   └─ transacoes.py
+ |   |
+ |   ├─ models
+ |   |   |
+ |   |   ├─ cliente.py
+ |   |   ├─ conta_corrente.py
+ |   |   ├─ conta.py
+ |   |   ├─ endereco.py
+ |   |   └─ transacoes.py
+ |   |
+ |   ├─ schemas
+ |   |   |
+ |   |   ├─ cliente.py
+ |   |   ├─ conta_corrente.py
+ |   |   ├─ conta.py
+ |   |   ├─ endereco.py
+ |   |   └─ transacoes.py
+ |   |
+ |   ├─ services
+ |   |   |
+ |   |   ├─ cliente.py
+ |   |   ├─ conta_corrente.py
+ |   |   ├─ conta.py
+ |   |   ├─ endereco.py
+ |   |   └─ transacoes.py
+ |   |
+ |   ├─ views
+ |   |   |
+ |   |   ├─
+ |   |   └─
+ |   |
+ |   ├─ database.py
+ |   ├─ main.py
+ |   └─ security.py
+ |
+ ├─ test
+ |   |
+ |   ├─ integration
+ |   |   |
+ |   |   └─ controllers
+ |   |       |
+ |   |       ├─ auth
+ |   |       |   |
+ |   |       |   └─ test_login.py
+ |   |       |
+ |   |       └ post
+ |   |          |
+ |   |          ├─
+ |   |          └─
+ |   |
+ |   ├─ __init__.py
+ |   └─ conftest.py
+ |
+ ├─ .gitignore
+ ├─ poetry.lock
+ └─ pyproject.toml
+```

@@ -17,8 +17,8 @@ Estas relações permitem efetuar consultas complexas que unem dados de várias 
 
 Para relacionar `n - n` é utilzado uam terceira tabelas para relacioná-los.
 
-| ID_Usuários | ID_Pets |
-|-------------|---------|
+|ID_Usuários|ID_Pets|
+|-----------|-------|
 |1|1|
 |1|2|
 |2|1|
