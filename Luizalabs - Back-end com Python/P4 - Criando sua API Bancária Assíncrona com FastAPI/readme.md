@@ -59,40 +59,37 @@ P4 - Criando sua API Bancária Assíncrona com FastAPI
  |   |
  |   ├─ controllers
  |   |   |
+ |   |   ├─ autenticacao.py
  |   |   ├─ cliente.py
- |   |   ├─ conta_corrente.py
  |   |   ├─ conta.py
- |   |   ├─ endereco.py
  |   |   └─ transacoes.py
  |   |
  |   ├─ models
  |   |   |
+ |   |   ├─ autenticacao.py
  |   |   ├─ cliente.py
- |   |   ├─ conta_corrente.py
  |   |   ├─ conta.py
- |   |   ├─ endereco.py
  |   |   └─ transacoes.py
  |   |
  |   ├─ schemas
  |   |   |
+ |   |   ├─ autenticacao.py
  |   |   ├─ cliente.py
- |   |   ├─ conta_corrente.py
  |   |   ├─ conta.py
- |   |   ├─ endereco.py
  |   |   └─ transacoes.py
  |   |
  |   ├─ services
  |   |   |
+ |   |   ├─ autenticacao.py
  |   |   ├─ cliente.py
- |   |   ├─ conta_corrente.py
  |   |   ├─ conta.py
- |   |   ├─ endereco.py
  |   |   └─ transacoes.py
  |   |
  |   ├─ views
  |   |   |
- |   |   ├─
- |   |   └─
+ |   |   ├─ cliente.py
+ |   |   ├─ conta.py
+ |   |   └─ transacoes.py
  |   |
  |   ├─ database.py
  |   ├─ main.py
@@ -120,19 +117,6 @@ P4 - Criando sua API Bancária Assíncrona com FastAPI
  ├─ poetry.lock
  └─ pyproject.toml
 ```
-
-#### 1.3 .env
-
-Criado arquivo `.env` conforme modelo:
-
-```.env
-ENVIRONMENT="local"
-DATABASE_URL="sqlite:///./blog.db"
-```
-
-Ele serve para armazenar chaves, tokens, senhas ou endereços que podem ser sensíveis.  
-Neste projeto ele estará público para fins de testes e reprodução do projeto.  
-Este arquivo .env será utilizado e através do arquivo `config.py`  
 
 ### 2 API
 
@@ -188,44 +172,7 @@ class ClienteOut(BaseModel):
     cadastrado_em: AwareDatetime | NaiveDatetime | None
 ```
 
-#### 2.3 src/config.py
-
-Este arquivo é utilizado no arquivo `src/database.py`.  
-É usado para auxiliar e automatizar leitura de variáveis e demais informações escritas no `.env` seguindo o modelo abaixo:
-
-```py
-from pydantic_settings import BaseSettings, SettingsConfigDict
-
-class Settings(BaseSettings):
-    model_config = SettingsConfigDict(
-        env_file=".env",
-        extra="ignore",
-        env_file_encoding="utf-8")
-
-    database_url: str
-    environment: str = "production"
-
-settings = Settings()
-```
-
-#### 2.4 src/database.py
-
-```py
-import databases
-import sqlalchemy as sa
-
-from src.config import settings
-
-database = databases.Database(settings.database_url)
-metadata = sa.MetaData()
-
-if settings.environment == 'production':
-    engine = sa.create_engine(settings.database_url)
-else: # para uso de fastapi
-    engine = sa.create_engine(settings.database_url, connect_args={"check_same_thread":False})
-```
-
-#### 2.5 src/main.py
+#### 2.3 src/main.py
 
 Neste arquivo vamos preparar a main e pré-configurar as rotas para os principais grupos:
 
@@ -256,7 +203,7 @@ app.include_router(conta.router)
 app.include_router(transacao.router)
 ```
 
-#### 2.6 src/controllers/
+#### 2.4 src/controllers/
 
 ```py
 from fastapi import APIRouter, Depends, status
@@ -302,13 +249,13 @@ async def realizar_transacao(cliente_id, transacao:TransacaoIn):
 
 P.S: Deixei comentado os `response_model` para testar as funcionalidades básicas da API antes de nos aprofundarmos no Banco e suas respectivas consultas e saídas.
 
-#### 2.7 Inicializando a API
+#### 2.5 Inicializando a API
 
 Se tudo estiver configurado o mínimo deve funcionar nas chamadas de `GET` ao se usar: `uvicorn src.main:app --reload`.  
 
 Se houver erros, ler os logs e corrigí-los.
 
-#### 2.8 Teste simples da API
+#### 2.6 Teste simples da API
 
 Vamos configurar o **Insomnia** para fazer alguns testes de `GET` e `POST` para vermos se obtemos as saídas genéricas anteriormente configuradas:
 
@@ -351,3 +298,80 @@ Vamos configurar o **Insomnia** para fazer alguns testes de `GET` e `POST` para 
 ```
 
 ### 3 Banco de Dados
+
+#### 3.1 .env
+
+Criado arquivo `.env` conforme modelo:
+
+```.env
+ENVIRONMENT="local"
+DATABASE_URL="sqlite:///./meu_banco.db"
+```
+
+Ele serve para armazenar caminhos, chaves, tokens, senhas ou endereços que podem ser sensíveis.  
+Neste projeto ele estará público para fins de testes e reprodução do projeto.  
+Este arquivo `.env` será acessado e através do arquivo `config.py`  
+
+#### 3.2 src/config.py
+
+Este arquivo é utilizado no arquivo `src/database.py`.  
+É usado para auxiliar e automatizar leitura de variáveis e demais informações escritas no `.env` seguindo o modelo abaixo:
+
+```py
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+class Settings(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        extra="ignore",
+        env_file_encoding="utf-8")
+
+    database_url: str
+    environment: str = "production"
+
+settings = Settings()
+```
+
+#### 3.3 src/database.py
+
+```py
+import databases
+import sqlalchemy as sa
+
+from src.config import settings
+
+database = databases.Database(settings.database_url)
+metadata = sa.MetaData()
+
+if settings.environment == 'production':
+    engine = sa.create_engine(settings.database_url)
+else: # para uso de fastapi
+    engine = sa.create_engine(settings.database_url, connect_args={"check_same_thread":False})
+```
+
+#### 3.4 src/models/
+
+Foi criado os arquivos na pasta model seguindo o padrão:
+
+```py
+import sqlalchemy as sa
+from src.database import metadata
+
+cliente = sa.Table(
+    'cliente',
+    metadata,
+    sa.Column('id', sa.Integer, primary_key=True, autoincrement=True),
+    sa.Column('endereco', sa.String),
+    sa.Column('cadastrado_em', sa.TIMESTAMP(timezone=True), nullable=True),
+    )
+
+pessoa_fisica = sa.Table(
+    'pessoa_fisica',
+    metadata,
+    sa.Column('id', sa.Integer, primary_key=True, autoincrement=True),
+    sa.Column('cliente_id', sa.Integer, sa.ForeignKey('cliente.id'), unique=True),
+    sa.Column('cpf', sa.String(14), nullable=False, unique=True),
+    sa.Column('nome', sa.String(150), nullable=False),
+    sa.Column('nascimento', sa.TIMESTAMP(timezone=True), nullable=True),
+    )
+```

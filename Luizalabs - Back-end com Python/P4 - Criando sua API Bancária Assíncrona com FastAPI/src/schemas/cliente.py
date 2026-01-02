@@ -18,3 +18,4 @@ class ClienteInEdit(BaseModel):
     cpf: str | None = None
     nome: str | None = None
     nascimento: date | None = None
+

@@ -1,7 +1,9 @@
-from pydantic import BaseModel, AwareDatetime, NaiveDatetime
+from pydantic import BaseModel, AwareDatetime
 
 class TransacaoOut(BaseModel):
-    transacao_id: int
+    id: int
     conta_id: int
     valor: float
-    cadastrado_em: AwareDatetime | NaiveDatetime
+    tipo: str
+    cadastrado_em: AwareDatetime
+    
