@@ -382,7 +382,7 @@ class PostOut(BaseModel):
 `src/config.py`:
 
 ```py
-from pydantic import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
