@@ -151,28 +151,8 @@ class ClienteInEdit(BaseModel):
 
 P.S: Ainda vou me decidir se vou usar Aware ou Naive
 
-#### 2.2 src/views/
 
-Assim como já configurei para a entrada de dados, vou deixar pré-configurado para visualização das nossas futuras saídas:
-
-```py
-from pydantic import BaseModel, AwareDatetime, NaiveDatetime
-from datetime import date
-
-class ClienteOut(BaseModel):
-    cliente_id: int
-    # Cliente
-    endereco: str
-    contas: list[dict] | None
-    # PessoaFisica
-    cpf: str
-    nome: str
-    nascimento: date
-    # etc
-    cadastrado_em: AwareDatetime | NaiveDatetime | None
-```
-
-#### 2.3 src/main.py
+#### 2.2 src/main.py
 
 Neste arquivo vamos preparar a main e pré-configurar as rotas para os principais grupos:
 
@@ -203,7 +183,7 @@ app.include_router(conta.router)
 app.include_router(transacao.router)
 ```
 
-#### 2.4 src/controllers/
+#### 2.3 src/controllers/
 
 ```py
 from fastapi import APIRouter, Depends, status
@@ -249,13 +229,13 @@ async def realizar_transacao(cliente_id, transacao:TransacaoIn):
 
 P.S: Deixei comentado os `response_model` para testar as funcionalidades básicas da API antes de nos aprofundarmos no Banco e suas respectivas consultas e saídas.
 
-#### 2.5 Inicializando a API
+#### 2.4 Inicializando a API
 
 Se tudo estiver configurado o mínimo deve funcionar nas chamadas de `GET` ao se usar: `uvicorn src.main:app --reload`.  
 
 Se houver erros, ler os logs e corrigí-los.
 
-#### 2.6 Teste simples da API
+#### 2.5 Teste simples da API
 
 Vamos configurar o **Insomnia** para fazer alguns testes de `GET` e `POST` para vermos se obtemos as saídas genéricas anteriormente configuradas:
 
@@ -374,4 +354,124 @@ pessoa_fisica = sa.Table(
     sa.Column('nome', sa.String(150), nullable=False),
     sa.Column('nascimento', sa.TIMESTAMP(timezone=True), nullable=True),
     )
+```
+
+#### 3.5 Criando as tabelas
+
+Vamos adicionar o Alembic: `poetry add 'alebic=*'`.  
+Em seguida no terminal vamos executar `alembic init migration`.  
+Vamos editar o arquivo `migration/env.py`:
+
+```py
+from logging.config import fileConfig
+
+from sqlalchemy import engine_from_config
+from sqlalchemy import pool
+
+from alembic import context
+from src.config import settings
+
+# this is the Alembic Config object, which provides
+# access to the values within the .ini file in use.
+config = context.config
+
+# Interpret the config file for Python logging.
+# This line sets up loggers basically.
+if config.config_file_name is not None:
+    fileConfig(config.config_file_name)
+
+from src.database import engine, metadata
+from src.models.cliente import cliente, pessoa_fisica
+from src.models.conta import conta, conta_corrente
+from src.models.transacao import transacao
+
+# add your model's MetaData object here
+# for 'autogenerate' support
+# from myapp import mymodel
+# target_metadata = mymodel.Base.metadata
+target_metadata = metadata
+
+# other values from the config, defined by the needs of env.py,
+# can be acquired:
+# my_important_option = config.get_main_option("my_important_option")
+# ... etc.
+
+
+def run_migrations_offline() -> None:
+    """Run migrations in 'offline' mode.
+
+    This configures the context with just a URL
+    and not an Engine, though an Engine is acceptable
+    here as well.  By skipping the Engine creation
+    we don't even need a DBAPI to be available.
+
+    Calls to context.execute() here emit the given string to the
+    script output.
+
+    """
+    url = settings.database_url
+    context.configure(
+        url=url,
+        target_metadata=target_metadata,
+        literal_binds=True,
+        dialect_opts={"paramstyle": "named"},
+    )
+
+    with context.begin_transaction():
+        context.run_migrations()
+
+
+def run_migrations_online() -> None:
+    """Run migrations in 'online' mode.
+
+    In this scenario we need to create an Engine
+    and associate a connection with the context.
+
+    """
+    connectable = engine
+
+    with connectable.connect() as connection:
+        context.configure(
+            connection=connection, target_metadata=target_metadata
+        )
+
+        with context.begin_transaction():
+            context.run_migrations()
+
+
+if context.is_offline_mode():
+    run_migrations_offline()
+else:
+    run_migrations_online()
+```
+
+Agora executar o:
+
+`alembic revision --autogenerate -m "Add initial tables"`  
+
+Neste momento ele criará um script para igualar o seu banco de dados atual com os modelos informados.  
+
+`alembic upgrade head`
+
+Detalhe: Como ainda não criamos os nosso banco ou tabelas, ao executar o comando abaixo o Alembic irá criar o nosso banco com as nossas tabelas.
+
+#### 3.x src/views/
+
+Assim como já configurei para a entrada de dados, vou deixar pré-configurado para visualização das nossas futuras saídas:
+
+```py
+from pydantic import BaseModel, AwareDatetime, NaiveDatetime
+from datetime import date
+
+class ClienteOut(BaseModel):
+    cliente_id: int
+    # Cliente
+    endereco: str
+    contas: list[dict] | None
+    # PessoaFisica
+    cpf: str
+    nome: str
+    nascimento: date
+    # etc
+    cadastrado_em: AwareDatetime | NaiveDatetime | None
 ```

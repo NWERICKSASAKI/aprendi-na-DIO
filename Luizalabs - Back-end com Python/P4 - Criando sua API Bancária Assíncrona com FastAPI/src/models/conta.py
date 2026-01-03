@@ -17,7 +17,7 @@ conta_corrente = sa.Table(
     'conta_corrente',
     metadata,
     sa.Column('id', sa.Integer, primary_key=True, autoincrement=True),
-    sa.Column('conta_id', sa.Integer, sa.ForeignKey('conta.id')),
+    sa.Column('conta_id', sa.Integer, sa.ForeignKey('contas.id')),
     sa.Column('limite', sa.Float),
     sa.Column('limite_saque', sa.Integer),
 )
