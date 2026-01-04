@@ -19,18 +19,18 @@ router = APIRouter(prefix="/clientes", tags=["Clientes"])
 @router.get("/")
 #@router.get("/", response_model=list[ClienteOut])
 async def listar_clientes():
-    return "Lista de clientes"
+    return await services.listar_clientes()
 
 @router.get("/{cliente_id}")
 #@router.get("/{cliente_id}", response_model=ClienteOut)
 async def obter_cliente(cliente_id: int):
-    return f"Detalhes do cliente {cliente_id}"
+    return await services.resgatar_cliente(cliente_id)
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
 #@router.post("/", response_model=ClienteOut, status_code=status.HTTP_201_CREATED)
 async def criar_cliente(cliente_json: ClienteIn):
-    services.criar_cliente(cliente_json)
-    return f"Cliente criado com sucesso: {cliente_json}"
+    cliente_id = await services.criar_cliente(cliente_json)
+    return {"id": cliente_id}
 
 @router.patch("/{cliente_id}", status_code=status.HTTP_202_ACCEPTED)
 #@router.patch("/{cliente_id}", response_model=ClienteOut, status_code=status.HTTP_202_ACCEPTED)
