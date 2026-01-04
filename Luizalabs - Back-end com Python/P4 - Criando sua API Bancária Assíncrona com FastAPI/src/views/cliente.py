@@ -2,13 +2,16 @@ from pydantic import BaseModel, AwareDatetime, NaiveDatetime
 from datetime import date
 
 class ClienteOut(BaseModel):
-    cliente_id: int
-    # Cliente
+    id: int
     endereco: str
-    contas: list[dict] | None
-    # PessoaFisica
+    contas_id: list[dict] | None
+    cadastrado_em: AwareDatetime | NaiveDatetime
+
+class PessoaFisicaOut(ClienteOut):
     cpf: str
     nome: str
     nascimento: date
-    # etc
-    cadastrado_em: AwareDatetime | NaiveDatetime
+
+class PessoaJuridicaOut(ClienteOut):
+    cpnj: str
+    razao_social: str

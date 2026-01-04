@@ -127,30 +127,42 @@ Decidi deixar semi-estruturado e funcional a API para eventualmente construir e 
 Para utilizarmos a API vou deixar configurado a pasta **schemas**, através dele os arquivos estarão configurados para filtrar as entradas das chamadas conforme a configuração exemplo abaixo:
 
 ```py
-from pydantic import AwareDatetime, BaseModel, NaiveDatetime
+from pydantic import AwareDatetime, BaseModel
+from typing import Literal
 from datetime import date
 
 class ClienteIn(BaseModel):
-    # Cliente
     endereco: str
-    # PessoaFisica
-    cpf: str
-    nome: str
-    nascimento: date
-    # etc
     cadastrado_em: AwareDatetime | None
 
 class ClienteInEdit(BaseModel):
-    # Cliente
     endereco: str | None = None
-    # PessoaFisica
+
+class PessoaFisicaIn(ClienteIn):
+    tipo: str = Literal["pf"]
+    cpf: str
+    nome: str
+    nascimento: date
+
+class PessoaFisicaInEdit(ClienteInEdit):
+    tipo: str = Literal["pf"]
     cpf: str | None = None
     nome: str | None = None
     nascimento: date | None = None
+
+# Prevendo futuros tipos
+class PessoaJuridicaIn(ClienteIn):
+    tipo: str = Literal["pj"]
+    cnpj: str
+    razao_social: str
+
+class PessoaJuridicaInEdit(ClienteInEdit):
+    tipo: str = Literal["pj"]
+    cnpf: str | None = None
+    razao_social: str | None = None
 ```
 
 P.S: Ainda vou me decidir se vou usar Aware ou Naive
-
 
 #### 2.2 src/main.py
 
@@ -188,10 +200,15 @@ app.include_router(transacao.router)
 ```py
 from fastapi import APIRouter, Depends, status
 
-from src.schemas.cliente import ClienteIn
+from src.schemas.cliente import PessoaFisicaIn, PessoaJuridicaIn
 from src.schemas.transacao import TransacaoIn
-from src.views.cliente import ClienteOut
+from src.views.cliente import PessoaFisicaOut, PessoaJuridicaOut 
 from src.views.transacao import TransacaoOut
+
+from typing import Union
+
+ClienteIn = Union[PessoaFisicaIn, PessoaJuridicaIn]
+ClienteOut = Union[PessoaFisicaOut, PessoaJuridicaOut]
 
 # TODO adicionar dependencias de login com Depends
 
@@ -200,7 +217,7 @@ router = APIRouter(prefix="/clientes", tags=["Clientes"])
 @router.get("/")
 #@router.get("/", response_model=list[ClienteOut])
 async def listar_clientes():
-    return "Lista de clientes"  # TODO implementar lógica de listagem de clientes
+    return "Lista de clientes"
 
 @router.get("/{cliente_id}")
 #@router.get("/{cliente_id}", response_model=ClienteOut)
@@ -220,11 +237,6 @@ async def atualizar_cliente(cliente_id: int, cliente: ClienteIn):
 @router.delete("/{cliente_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def deletar_cliente(cliente_id: int):
     return
-
-@router.post("/{cliente_id}/transacao", status_code=status.HTTP_202_ACCEPTED)
-#@router.post("/{cliente_id}/transacao", response_model=TransacaoOut, status_code=status.HTTP_202_ACCEPTED)
-async def realizar_transacao(cliente_id, transacao:TransacaoIn):
-    return f"Transacao realizada com sucesso no valor de {transacao.valor}"
 ```
 
 P.S: Deixei comentado os `response_model` para testar as funcionalidades básicas da API antes de nos aprofundarmos no Banco e suas respectivas consultas e saídas.
@@ -248,10 +260,10 @@ Vamos configurar o **Insomnia** para fazer alguns testes de `GET` e `POST` para 
 ```json
 {
   "endereco": "Rua ABC, 123",
+  "tipo": "pf",
   "cpf": "12345678901",
   "nome": "Testonildo da Silva",
-  "nascimento": "1993-02-01",
-  "cadastrado_em": "2026-01-01 12:59:00-03:00"
+  "nascimento": "1993-02-01"
 }
 ```
 
@@ -342,18 +354,29 @@ cliente = sa.Table(
     metadata,
     sa.Column('id', sa.Integer, primary_key=True, autoincrement=True),
     sa.Column('endereco', sa.String),
-    sa.Column('cadastrado_em', sa.TIMESTAMP(timezone=True), nullable=True),
+    sa.Column('cadastrado_em', sa.TIMESTAMP(timezone=True), nullable=True)
     )
 
 pessoa_fisica = sa.Table(
     'pessoa_fisica',
     metadata,
     sa.Column('id', sa.Integer, primary_key=True, autoincrement=True),
-    sa.Column('cliente_id', sa.Integer, sa.ForeignKey('cliente.id'), unique=True),
+    sa.Column('cliente_id', sa.Integer, sa.ForeignKey('cliente.id', ondelete='CASCADE')),
+    sa.Column('tipo', sa.String(2)),
     sa.Column('cpf', sa.String(14), nullable=False, unique=True),
     sa.Column('nome', sa.String(150), nullable=False),
     sa.Column('nascimento', sa.TIMESTAMP(timezone=True), nullable=True),
     )
+
+pessoa_juridica = sa.Table(
+    'pessoa_juridica',
+    metadata,
+    sa.Column('id', sa.Integer, primary_key=True, autoincrement=True),
+    sa.Column('cliente_id', sa.Integer, sa.ForeignKey('cliente.id', ondelete='CASCADE')),
+    sa.Column('tipo', sa.String(2)),
+    sa.Column('cnpj', sa.String(), nullable=False, unique=True),
+    sa.Column('razao_social', sa.String(150), nullable=False)
+)
 ```
 
 #### 3.5 Criando as tabelas
@@ -451,27 +474,111 @@ Agora executar o:
 
 Neste momento ele criará um script para igualar o seu banco de dados atual com os modelos informados.  
 
+Como ainda não criamos os nosso banco ou tabelas, ao executar o comando abaixo, o Alembic irá criar o nosso banco com as nossas tabelas.  
+
 `alembic upgrade head`
 
-Detalhe: Como ainda não criamos os nosso banco ou tabelas, ao executar o comando abaixo o Alembic irá criar o nosso banco com as nossas tabelas.
+P.S:  
+
+Se por ventura ficar constantemente revisando as tabelas, alterando de título ou nome das colunas constantemente e ainda não chegar na forma defitiva, o seu Alembic nas próximas `revision` e `upgrade head` podem dar erros e alertas.
+
+Caso chegar nesse ponto em que valha a pena "resetar" o alembic, apagar a pasta `migration/` e deletar o `arquivo.bd` e aí sim reiniciar o processo do `alembic init migration` e etc...
+
+#### 3.6 Inserindo dados
+
+No `src/controllers/cliente.py` comecei a editar a rota POST:
+
+```py
+from src.services import cliente as services
+
+@router.post("/", status_code=status.HTTP_201_CREATED)
+#@router.post("/", response_model=ClienteOut, status_code=status.HTTP_201_CREATED)
+async def criar_cliente(cliente: ClienteIn):
+    services.criar_cliente(cliente_json)
+    return f"Cliente criado com sucesso: {cliente}"
+```
+
+Para o primeiro POST de cliente funcionar o arquivo `src/services/cliente.py` começou assim:
+
+```py
+import sqlalchemy as sa
+from src.database import engine
+from src.models.cliente import cliente, pessoa_fisica, pessoa_juridica
+from datetime import datetime, timezone
+
+def _criar_cliente_base(cliente_json, conn) -> int:
+    stmt = cliente.insert().values(
+        endereco = cliente_json.endereco,
+        cadastrado_em = datetime.now(timezone.utc)
+    )
+    result = conn.execute(stmt)
+    id = result.inserted_primary_key[0]
+    return id
+
+def _criar_cliente_pf(id, cliente_json, conn) -> int:
+    stmt = pessoa_fisica.insert().values(
+        cliente_id = id,
+        tipo = cliente_json.tipo,
+        cpf = cliente_json.cpf,
+        nome = cliente_json.nome,
+        nascimento = cliente_json.nascimento
+    )
+    result = conn.execute(stmt)
+    id = result.inserted_primary_key[0]
+    return id
+
+def _criar_cliente_pj(id, cliente_json, conn) -> int:
+        stmt = pessoa_juridica.insert().values(
+            cliente_id = id,
+            tipo = cliente_json.tipo,
+            cnpj = cliente_json.cnpj,
+            razao_social = cliente_json.razao_social
+        )
+        result = conn.execute(stmt)
+        id = result.inserted_primary_key[0]
+        return id
+
+def criar_cliente(cliente_json):
+    with engine.connect() as conn:
+        id = _criar_cliente_base(cliente_json, conn)
+        match cliente_json.tipo:
+            case "pf":
+                _criar_cliente_pf(id, cliente_json, conn)
+            case "pj":
+                _criar_cliente_pj(id, cliente_json, conn)
+        try:
+            conn.commit()
+        except:
+            conn.rollback()
+```
+
+
+
+
+
+
+
 
 #### 3.x src/views/
 
 Assim como já configurei para a entrada de dados, vou deixar pré-configurado para visualização das nossas futuras saídas:
 
 ```py
-from pydantic import BaseModel, AwareDatetime, NaiveDatetime
+from pydantic import BaseModel, AwareDatetime, NaiveDatetime 
 from datetime import date
 
 class ClienteOut(BaseModel):
-    cliente_id: int
-    # Cliente
+    id: int
     endereco: str
-    contas: list[dict] | None
-    # PessoaFisica
+    contas_id: list[dict] | None
+    cadastrado_em: AwareDatetime | NaiveDatetime
+
+class PessoaFisicaOut(ClienteOut):
     cpf: str
     nome: str
     nascimento: date
-    # etc
-    cadastrado_em: AwareDatetime | NaiveDatetime | None
+
+class PessoaJuridicaOut(ClienteOut):
+    cpnj: str
+    razao_social: str
 ```

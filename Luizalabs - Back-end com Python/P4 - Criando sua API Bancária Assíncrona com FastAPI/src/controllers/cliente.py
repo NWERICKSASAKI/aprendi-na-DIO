@@ -1,9 +1,16 @@
 from fastapi import APIRouter, Depends, status
 
-from src.schemas.cliente import ClienteIn
+from src.schemas.cliente import PessoaFisicaIn, PessoaJuridicaIn
 from src.schemas.transacao import TransacaoIn
-from src.views.cliente import ClienteOut
+from src.views.cliente import PessoaFisicaOut, PessoaJuridicaOut 
 from src.views.transacao import TransacaoOut
+from src.services import cliente as services
+
+
+from typing import Union
+
+ClienteIn = Union[PessoaFisicaIn, PessoaJuridicaIn]
+ClienteOut = Union[PessoaFisicaOut, PessoaJuridicaOut]
 
 # TODO adicionar dependencias de login com Depends
 
@@ -12,7 +19,7 @@ router = APIRouter(prefix="/clientes", tags=["Clientes"])
 @router.get("/")
 #@router.get("/", response_model=list[ClienteOut])
 async def listar_clientes():
-    return "Lista de clientes"  # TODO implementar lógica de listagem de clientes
+    return "Lista de clientes"
 
 @router.get("/{cliente_id}")
 #@router.get("/{cliente_id}", response_model=ClienteOut)
@@ -21,8 +28,9 @@ async def obter_cliente(cliente_id: int):
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
 #@router.post("/", response_model=ClienteOut, status_code=status.HTTP_201_CREATED)
-async def criar_cliente(cliente: ClienteIn):
-    return f"Cliente criado com sucesso: {cliente}"
+async def criar_cliente(cliente_json: ClienteIn):
+    services.criar_cliente(cliente_json)
+    return f"Cliente criado com sucesso: {cliente_json}"
 
 @router.patch("/{cliente_id}", status_code=status.HTTP_202_ACCEPTED)
 #@router.patch("/{cliente_id}", response_model=ClienteOut, status_code=status.HTTP_202_ACCEPTED)
