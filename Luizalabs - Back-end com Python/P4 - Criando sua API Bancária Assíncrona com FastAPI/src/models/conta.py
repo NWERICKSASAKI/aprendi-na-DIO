@@ -17,7 +17,18 @@ conta_corrente = sa.Table(
     'conta_corrente',
     metadata,
     sa.Column('id', sa.Integer, primary_key=True, autoincrement=True),
+    sa.Column('tipo', sa.String(1)),
     sa.Column('conta_id', sa.Integer, sa.ForeignKey('conta.id', ondelete='CASCADE')),
     sa.Column('limite', sa.Float),
     sa.Column('limite_saque', sa.Integer)
+)
+
+conta_empresarial = sa.Table(
+    'conta_empresarial',
+    metadata,
+    sa.Column('id', sa.Integer, primary_key=True, autoincrement=True),
+    sa.Column('tipo', sa.String(1)),
+    sa.Column('conta_id', sa.Integer, sa.ForeignKey('conta.id', ondelete='CASCADE')),
+    sa.Column('emprestimo', sa.Float),
+    sa.Column('emprestimo_limite', sa.Float)
 )

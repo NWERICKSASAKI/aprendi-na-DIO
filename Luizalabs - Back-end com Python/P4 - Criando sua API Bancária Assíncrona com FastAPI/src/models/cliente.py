@@ -17,7 +17,7 @@ pessoa_fisica = sa.Table(
     sa.Column('tipo', sa.String(2)),
     sa.Column('cpf', sa.String(14), nullable=False, unique=True),
     sa.Column('nome', sa.String(150), nullable=False),
-    sa.Column('nascimento', sa.TIMESTAMP(timezone=True), nullable=True),
+    sa.Column('nascimento', sa.Date, nullable=True),
     )
 
 pessoa_juridica = sa.Table(
