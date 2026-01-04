@@ -255,7 +255,7 @@ Vamos configurar o **Insomnia** para fazer alguns testes de `GET` e `POST` para 
 - Clique em `Base Environment` → `✏️` e configure um com nome `host` passando como argumento `http://127.0.0.1:8000`
 - Dentro dele foi criado várias pastas: `Autenticação`, `Cliente`, `Conta` e `Transação`
 - Para cada uma das pasta foi criado um HTTP Request via `+` → `HTTP Request`, lembrete de inserir `_.host` no path.
-- Para o `POST` foi usado o seguinte `body/json`:
+- Para o `POST` foi usado o seguinte `body/json` para pessoa física:
 
 ```json
 {
@@ -267,14 +267,24 @@ Vamos configurar o **Insomnia** para fazer alguns testes de `GET` e `POST` para 
 }
 ```
 
+- Para criação de pessoa jurídica:
+
+```json
+{
+  "endereco": "Rua Empresarial, 1.000",
+  "tipo": "pj",
+  "cnpj": "123.456.789/0001-99",
+  "razao_social": "Testes & CIA"
+}
+```
+
 - Para o `POST` de Transacao foi configurado o seguinte JSON:
 
 ```json
 {
   "transacao_id": 1,
   "conta_id": 1,
-  "valor": 1234.56,
-  "cadastrado_em": "2026-01-31 12:34-03:00"
+  "valor": 1234.56
 }
 ```
 
@@ -285,7 +295,6 @@ Vamos configurar o **Insomnia** para fazer alguns testes de `GET` e `POST` para 
   "conta_id": 1,
   "agencia": "0001",
   "cliente_id": 1,
-  "cadastrado_em": "2026-01-31 12:34-03:00"
 }
 ```
 
@@ -362,7 +371,6 @@ pessoa_fisica = sa.Table(
     metadata,
     sa.Column('id', sa.Integer, primary_key=True, autoincrement=True),
     sa.Column('cliente_id', sa.Integer, sa.ForeignKey('cliente.id', ondelete='CASCADE')),
-    sa.Column('tipo', sa.String(2)),
     sa.Column('cpf', sa.String(14), nullable=False, unique=True),
     sa.Column('nome', sa.String(150), nullable=False),
     sa.Column('nascimento', sa.TIMESTAMP(timezone=True), nullable=True),
@@ -373,7 +381,6 @@ pessoa_juridica = sa.Table(
     metadata,
     sa.Column('id', sa.Integer, primary_key=True, autoincrement=True),
     sa.Column('cliente_id', sa.Integer, sa.ForeignKey('cliente.id', ondelete='CASCADE')),
-    sa.Column('tipo', sa.String(2)),
     sa.Column('cnpj', sa.String(), nullable=False, unique=True),
     sa.Column('razao_social', sa.String(150), nullable=False)
 )

@@ -14,7 +14,6 @@ pessoa_fisica = sa.Table(
     metadata,
     sa.Column('id', sa.Integer, primary_key=True, autoincrement=True),
     sa.Column('cliente_id', sa.Integer, sa.ForeignKey('cliente.id', ondelete='CASCADE')),
-    sa.Column('tipo', sa.String(2)),
     sa.Column('cpf', sa.String(14), nullable=False, unique=True),
     sa.Column('nome', sa.String(150), nullable=False),
     sa.Column('nascimento', sa.Date, nullable=True),
@@ -25,7 +24,6 @@ pessoa_juridica = sa.Table(
     metadata,
     sa.Column('id', sa.Integer, primary_key=True, autoincrement=True),
     sa.Column('cliente_id', sa.Integer, sa.ForeignKey('cliente.id', ondelete='CASCADE')),
-    sa.Column('tipo', sa.String(2)),
     sa.Column('cnpj', sa.String(), nullable=False, unique=True),
     sa.Column('razao_social', sa.String(150), nullable=False)
 )
