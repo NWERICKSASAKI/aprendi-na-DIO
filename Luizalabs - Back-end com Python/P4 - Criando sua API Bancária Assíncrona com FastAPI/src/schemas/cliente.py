@@ -1,4 +1,4 @@
-from pydantic import AwareDatetime, BaseModel
+from pydantic import BaseModel
 from typing import Literal
 from datetime import date
 

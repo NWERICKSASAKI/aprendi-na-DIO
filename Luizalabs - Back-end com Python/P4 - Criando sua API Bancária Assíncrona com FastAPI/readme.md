@@ -739,3 +739,90 @@ async def atualizar_cliente(cliente_id: int, cliente_json):
     return
 ```
 
+#### 3.11 Conta: POST, GET, PATCH, DELETE
+
+Começando com `src/models/conta.py`.  
+
+Em sí eu já havia criado anteriormente, mas conforme fui avançando no projeto e consultando as boas práticas e arquiteturas comumente usadas, eu tive que editar:
+
+```py
+import sqlalchemy as sa
+from src.database import metadata
+
+conta = sa.Table(
+    'conta',
+    metadata,
+    sa.Column('id', sa.Integer, primary_key=True, autoincrement=True),
+    sa.Column('saldo', sa.Float),
+    sa.Column('numero', sa.Integer, unique=True, autoincrement=True),
+    sa.Column('agencia', sa.String(4)),
+    sa.Column('cadastrado_em', sa.TIMESTAMP(timezone=True), nullable=True)
+)
+
+conta_corrente = sa.Table(
+    'conta_corrente',
+    metadata,
+    sa.Column('id', sa.Integer, primary_key=True, autoincrement=True),
+    sa.Column('conta_id', sa.Integer, sa.ForeignKey('conta.id', ondelete='CASCADE')),
+    sa.Column('limite', sa.Float),
+    sa.Column('limite_saque', sa.Integer)
+)
+
+conta_empresarial = sa.Table(
+    'conta_empresarial',
+    metadata,
+    sa.Column('id', sa.Integer, primary_key=True, autoincrement=True),
+    sa.Column('conta_id', sa.Integer, sa.ForeignKey('conta.id', ondelete='CASCADE')),
+    sa.Column('emprestimo', sa.Float),
+    sa.Column('emprestimo_limite', sa.Float)
+)
+```
+
+Devido a alteração na estrutura da tabela, preciso atualizar o meu banco para se ajustar:
+
+`alembic revision --autogenerate -m "Alteração da tabela conta"`  
+
+`alembic upgrade head`  
+
+Então deu o erro:
+
+`NotImplementedError: No support for ALTER of constraints in SQLite dialect. Please refer to the batch mode feature which allows for SQLite migrations using a copy-and-move strategy.`
+
+Então tive que apagar o `meu_banco_de_dados.db` e a pasta `migration/` e refazer o processo do Alembic.
+
+P.S: Tentei o `render_as_batch=True` mas o erro persistia.
+
+Já em `src/schemas/conta.py`:
+
+```py
+from pydantic import BaseModel, Field
+from typing import Literal
+
+class ContaIn(BaseModel):
+    numero_conta: int 
+    agencia: str = "0001"
+
+class ContaInEdit(BaseModel):
+    numero_conta: int | None = None
+    agencia: str | None = None
+
+class ContaCorrenteIn(ContaIn):
+    tipo: Literal["cc"] = "cc"
+    limite: float = Field(ge=0)
+    limites_saques: int = Field(ge=0)
+
+class ContaCorrenteInEdit(ContaInEdit):
+    tipo: str = Literal["cc"]
+    limite: float | None = Field(default=None, ge=0)
+    limites_saques: int | None = Field(default=None, ge=0)
+
+class ContaEmpresarialIn(ContaIn):
+    tipo: str = Literal["ce"]
+    emprestimo: float = Field(ge=0)
+    emprestimo_limite: float = Field(ge=0)
+
+class ContaEmpresarialInEdit(ContaInEdit):
+    tipo: str = Literal["ce"]
+    emprestimo: float | None  = Field(default=None, ge=0)
+    emprestimo_limite: float | None  = Field(default=None, ge=0)
+```

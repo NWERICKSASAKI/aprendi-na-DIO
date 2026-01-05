@@ -33,7 +33,7 @@ async def obter_cliente(cliente_id: int):
 @router.post("/", status_code=status.HTTP_201_CREATED)
 async def criar_cliente(cliente_json: ClienteIn):
     cliente_id = await services.criar_cliente(cliente_json)
-    return
+    return f"Cliente id {cliente_id} criado com sucesso!"
 
 @router.patch("/{cliente_id}", status_code=status.HTTP_202_ACCEPTED)
 async def atualizar_cliente(cliente_id: int, cliente: ClienteInEdit):

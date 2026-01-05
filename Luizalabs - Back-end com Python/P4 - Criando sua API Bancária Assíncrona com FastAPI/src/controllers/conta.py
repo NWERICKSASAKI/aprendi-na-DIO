@@ -4,7 +4,6 @@ from src.schemas.conta import ContaIn, ContaInEdit
 from src.views.conta import ContaOut
 from src.views.transacao import TransacaoOut
 
-# TODO adicionar dependencias de login
 router = APIRouter(prefix="/contas", tags=["Contas"])
 
 @router.get("/")
