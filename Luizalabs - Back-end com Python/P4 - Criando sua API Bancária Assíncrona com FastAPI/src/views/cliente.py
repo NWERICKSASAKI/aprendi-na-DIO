@@ -9,10 +9,14 @@ class ClienteOut(BaseModel):
     cadastrado_em: AwareDatetime
 
 class PessoaFisicaOut(ClienteOut):
+    tipo: Literal["pf"] = "pf"
+    pf_id: int
     cpf: str
     nome: str
     nascimento: date
 
 class PessoaJuridicaOut(ClienteOut):
-    cpnj: str
+    tipo: Literal["pj"] = "pj"
+    pj_id: int
+    cnpj: str
     razao_social: str

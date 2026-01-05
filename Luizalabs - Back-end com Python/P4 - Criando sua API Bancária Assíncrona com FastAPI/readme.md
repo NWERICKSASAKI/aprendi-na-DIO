@@ -202,35 +202,26 @@ from fastapi import APIRouter, Depends, status
 
 from src.schemas.cliente import PessoaFisicaIn, PessoaJuridicaIn
 from src.schemas.transacao import TransacaoIn
-from src.views.cliente import PessoaFisicaOut, PessoaJuridicaOut 
-from src.views.transacao import TransacaoOut
 
 from typing import Union
 
 ClienteIn = Union[PessoaFisicaIn, PessoaJuridicaIn]
-ClienteOut = Union[PessoaFisicaOut, PessoaJuridicaOut]
-
-# TODO adicionar dependencias de login com Depends
 
 router = APIRouter(prefix="/clientes", tags=["Clientes"])
 
 @router.get("/")
-#@router.get("/", response_model=list[ClienteOut])
 async def listar_clientes():
     return "Lista de clientes"
 
 @router.get("/{cliente_id}")
-#@router.get("/{cliente_id}", response_model=ClienteOut)
 async def obter_cliente(cliente_id: int):
     return f"Detalhes do cliente {cliente_id}"
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
-#@router.post("/", response_model=ClienteOut, status_code=status.HTTP_201_CREATED)
 async def criar_cliente(cliente: ClienteIn):
     return f"Cliente criado com sucesso: {cliente}"
 
 @router.patch("/{cliente_id}", status_code=status.HTTP_202_ACCEPTED)
-#@router.patch("/{cliente_id}", response_model=ClienteOut, status_code=status.HTTP_202_ACCEPTED)
 async def atualizar_cliente(cliente_id: int, cliente: ClienteIn):
     return f"Cliente {cliente_id} atualizado com sucesso: {cliente}"
 
@@ -239,7 +230,7 @@ async def deletar_cliente(cliente_id: int):
     return
 ```
 
-P.S: Deixei comentado os `response_model` para testar as funcionalidades básicas da API antes de nos aprofundarmos no Banco e suas respectivas consultas e saídas.
+P.S: O `response_model` será acrescentado posteriormente, pois o foco agora é testar as funcionalidades básicas da API antes de nos aprofundarmos no Banco e suas respectivas consultas e saídas.
 
 #### 2.4 Inicializando a API
 
@@ -493,99 +484,258 @@ Caso chegar nesse ponto em que valha a pena "resetar" o alembic, apagar a pasta 
 
 #### 3.6 Inserindo dados
 
-No `src/controllers/cliente.py` comecei a editar a rota POST:
+No `src/controllers/cliente.py` comecei a editar e acrescentar a rota POST:
 
 ```py
-from src.services import cliente as services
+from src.services import clientes as services
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
-#@router.post("/", response_model=ClienteOut, status_code=status.HTTP_201_CREATED)
-async def criar_cliente(cliente: ClienteIn):
-    services.criar_cliente(cliente_json)
-    return f"Cliente criado com sucesso: {cliente}"
+async def criar_cliente(cliente_json: ClienteIn):
+    cliente_id = await services.criar_cliente(cliente_json)
+    return {"id": cliente_id}
 ```
 
 Para o primeiro POST de cliente funcionar o arquivo `src/services/cliente.py` começou assim:
 
 ```py
 import sqlalchemy as sa
-from src.database import engine
+from src.database import database
 from src.models.cliente import cliente, pessoa_fisica, pessoa_juridica
 from datetime import datetime, timezone
 
-def _criar_cliente_base(cliente_json, conn) -> int:
-    stmt = cliente.insert().values(
+async def _criar_cliente_base(cliente_json) -> int:
+    query = cliente.insert().values(
         endereco = cliente_json.endereco,
         cadastrado_em = datetime.now(timezone.utc)
     )
-    result = conn.execute(stmt)
-    id = result.inserted_primary_key[0]
+    id = await database.execute(query)
     return id
 
-def _criar_cliente_pf(id, cliente_json, conn) -> int:
-    stmt = pessoa_fisica.insert().values(
+async def _criar_cliente_pf(id, cliente_json) -> int:
+    query = pessoa_fisica.insert().values(
         cliente_id = id,
-        tipo = cliente_json.tipo,
         cpf = cliente_json.cpf,
         nome = cliente_json.nome,
         nascimento = cliente_json.nascimento
     )
-    result = conn.execute(stmt)
-    id = result.inserted_primary_key[0]
+    id = await database.execute(query)
     return id
 
-def _criar_cliente_pj(id, cliente_json, conn) -> int:
-        stmt = pessoa_juridica.insert().values(
+async def _criar_cliente_pj(id, cliente_json) -> int:
+        query = pessoa_juridica.insert().values(
             cliente_id = id,
-            tipo = cliente_json.tipo,
             cnpj = cliente_json.cnpj,
             razao_social = cliente_json.razao_social
         )
-        result = conn.execute(stmt)
-        id = result.inserted_primary_key[0]
+        id = await database.execute(query)
         return id
 
-def criar_cliente(cliente_json):
-    with engine.connect() as conn:
-        id = _criar_cliente_base(cliente_json, conn)
+async def criar_cliente(cliente_json):
+    async with database.transaction(): # commit automático e rollback em caso de erro
+        id = await _criar_cliente_base(cliente_json)
         match cliente_json.tipo:
             case "pf":
-                _criar_cliente_pf(id, cliente_json, conn)
+                await _criar_cliente_pf(id, cliente_json)
             case "pj":
-                _criar_cliente_pj(id, cliente_json, conn)
-        try:
-            conn.commit()
-        except:
-            conn.rollback()
+                await _criar_cliente_pj(id, cliente_json)
+        return id
 ```
 
+Após essa configuração foi inserido via POST pelo Insonmia alguns clientes.
 
+#### 3.7 Resgatando dados
 
-
-
-
-
-
-#### 3.x src/views/
-
-Assim como já configurei para a entrada de dados, vou deixar pré-configurado para visualização das nossas futuras saídas:
+Editado no arquivo `src/controllers/cliente.py`:
 
 ```py
-from pydantic import BaseModel, AwareDatetime, NaiveDatetime 
+@router.get("/")
+async def listar_clientes():
+    return await services.listar_clientes()
+```
+
+Enquanto isso no `src/services/cliente.py` foi adicionado a função:
+
+```py
+async def listar_clientes():
+    query = sa.select(
+        cliente.c.id,
+        cliente.c.endereco,
+        cliente.c.cadastrado_em,
+
+        pessoa_fisica.c.id.label("pf_id"),
+        pessoa_fisica.c.cpf,
+        pessoa_fisica.c.nome,
+        pessoa_fisica.c.nascimento,
+
+        pessoa_juridica.c.id.label("pj_id"),
+        pessoa_juridica.c.cnpj,
+        pessoa_juridica.c.razao_social
+    ).select_from(
+        cliente
+        .outerjoin(pessoa_fisica, pessoa_fisica.c.cliente_id == cliente.c.id)
+        .outerjoin(pessoa_juridica, pessoa_juridica.c.cliente_id == cliente.c.id)
+    )
+    rows = await database.fetch_all(query)
+    return rows
+```
+
+Ao usar o Insomnia retornará todos os clientes com todas as suas informações, sejam elas Pessoas Físicas ou Jurídicas.
+
+Único detalhe que a saída do `GET` trará todas as informações independente do tipo de cliente/pessoa, retornando vários campos como `null`.
+
+#### 3.8 src/views/
+
+Para configurarmos como queremos que seja a saída, precisaremos do `model_response` no `src/controllers/cliente.py`:
+
+```py
+from src.views.cliente import PessoaFisicaOut, PessoaJuridicaOut 
+from src.views.transacao import TransacaoOut
+
+from pydantic import Field
+from typing import Union, Annotated
+
+# com o ClienteOut, será selecionado qual das VIEWS será utilizada com base no "tipo" dos dados, seja ela "pj" ou "pf".
+ClienteOut = Annotated[
+    Union[PessoaFisicaOut, PessoaJuridicaOut],
+    Field(discriminator="tipo")
+]
+
+# ...
+
+@router.get("/", response_model=list[ClienteOut])
+async def listar_clientes():
+    return await services.listar_clientes()
+```
+
+Mas vamos ter que formatar a saída da função `listar_clientes()` do `src/services/cliente.py` também:
+
+```py
+async def listar_clientes():
+    # ...
+    return [_mapear_cliente(row) for row in rows]
+```
+
+Foi adicionado a função `_mapear_cliente(row)` neste mesmo arquivo:
+
+```py
+def _mapear_cliente(row) -> dict:
+    base = {
+        "id": row["id"],
+        "endereco": row["endereco"],
+        "cadastrado_em": row["cadastrado_em"].replace(tzinfo=timezone.utc) # para reconverter pro AwareDatetime
+    }
+    if row["cpf"]:
+        return {
+            **base,
+            "pf_id": row["pf_id"],
+            "tipo": "pf",
+            "cpf": row["cpf"],
+            "nome": row["nome"],
+            "nascimento": row["nascimento"]
+        }
+    if row["cnpj"]:
+        return {
+            **base,
+            "pj_id": row["pj_id"],
+            "tipo": "pj",
+            "cnpj": row["cnpj"],
+            "razao_social": row["razao_social"]
+        }
+    raise ValueError("Cliente sem PF/PJ associado")
+```
+
+Por fim, foi configurado para visualização das nossas futuras saídas no `src/views/cliente.py`:
+
+```py
+from pydantic import BaseModel, AwareDatetime
 from datetime import date
+from typing import Literal
 
 class ClienteOut(BaseModel):
     id: int
     endereco: str
-    contas_id: list[dict] | None
-    cadastrado_em: AwareDatetime | NaiveDatetime
+    # contas_id: list[dict] | None
+    cadastrado_em: AwareDatetime
 
 class PessoaFisicaOut(ClienteOut):
+    tipo: Literal["pf"] = "pf"
+    pf_id: int
     cpf: str
     nome: str
     nascimento: date
 
 class PessoaJuridicaOut(ClienteOut):
-    cpnj: str
+    tipo: Literal["pj"] = "pj"
+    pj_id: int
+    cnpj: str
     razao_social: str
 ```
+
+A nova saída do `GET` sairá com os campos definidos e sem qualquer campo adicional com `null`.
+
+#### 3.9 Deletando dados
+
+Editado no `src/controllers/cliente.py`:
+
+```py
+@router.delete("/{cliente_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def deletar_cliente(cliente_id: int):
+    await services.deletar_cliente(cliente_id)
+    return
+```
+
+Enquanto no `src/services/cliente.py`:
+
+```py
+async def deletar_cliente(cliente_id: int):
+    async with  database.transaction():
+        await database.execute(pessoa_fisica.delete().where(pessoa_fisica.c.cliente_id == cliente_id))
+        await database.execute(pessoa_juridica.delete().where(pessoa_juridica.c.cliente_id == cliente_id))
+        result = await database.execute(cliente.delete().where(cliente.c.id == cliente_id))
+        return result>0 # True/False se apagou alguma linha
+```
+
+#### 3.10 Patch de dados
+
+Em `src/controllers/cliente.py`:
+
+```py
+@router.patch("/{cliente_id}", status_code=status.HTTP_202_ACCEPTED)
+async def atualizar_cliente(cliente_id: int, cliente: ClienteInEdit):
+    await services.atualizar_cliente(cliente_id, cliente)
+    return
+```
+
+Em `src/services/cliente.py` tive que separar o JSON em dicionários específicos para cada tabela para depois realizar o `UPDATE`:
+
+```py
+async def atualizar_cliente(cliente_id: int, cliente_json):
+    dicio_dados = cliente_json.model_dump(exclude_unset=True)
+    tipo = dicio_dados.pop("tipo")
+
+    dados_base = {}
+    dados_pf = {}
+    dados_pj = {}
+
+    for k,v in dicio_dados.items():
+        if k in cliente.c:
+            dados_base[k]=v
+    if dados_base:
+        await database.execute(cliente.update().values(**dados_base).where(cliente.c.id == cliente_id))
+
+    match tipo:
+        case 'pf':
+            for k,v in dicio_dados.items():
+                if k in pessoa_fisica.c:
+                    dados_pf[k]=v
+            if dados_pf:
+                await database.execute(pessoa_fisica.update().values(**dados_pf).where(pessoa_fisica.c.id == cliente_id))
+        case 'pj':
+            for k,v in dicio_dados.items():
+                if k in pessoa_juridica.c:
+                    dados_pj[k]=v
+            if dados_pj:
+                await database.execute(pessoa_juridica.update().values(**dados_pj).where(pessoa_juridica.c.id == cliente_id))
+    return
+```
+

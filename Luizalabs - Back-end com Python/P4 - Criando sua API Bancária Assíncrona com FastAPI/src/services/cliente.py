@@ -40,20 +40,18 @@ async def criar_cliente(cliente_json):
                 await _criar_cliente_pj(id, cliente_json)
         return id
 
-async def listar_clientes():
-    query = cliente.select()
-    return await database.fetch_all(query)
 
 def _mapear_cliente(row) -> dict:
     base = {
         "id": row["id"],
         "endereco": row["endereco"],
-        "cadastrado_em": row["cadastrado_em"]
+        "cadastrado_em": row["cadastrado_em"].replace(tzinfo=timezone.utc) # para reconverter pro AwareDatetime
     }
     if row["cpf"]:
         return {
             **base,
             "pf_id": row["pf_id"],
+            "tipo": "pf",
             "cpf": row["cpf"],
             "nome": row["nome"],
             "nascimento": row["nascimento"]
@@ -62,10 +60,36 @@ def _mapear_cliente(row) -> dict:
         return {
             **base,
             "pj_id": row["pj_id"],
+            "tipo": "pj",
             "cnpj": row["cnpj"],
             "razao_social": row["razao_social"]
         }
     raise ValueError("Cliente sem PF/PJ associado")
+
+
+async def listar_clientes():
+
+    query = sa.select(
+        cliente.c.id,
+        cliente.c.endereco,
+        cliente.c.cadastrado_em,
+
+        pessoa_fisica.c.id.label("pf_id"),
+        pessoa_fisica.c.cpf,
+        pessoa_fisica.c.nome,
+        pessoa_fisica.c.nascimento,
+
+        pessoa_juridica.c.id.label("pj_id"),
+        pessoa_juridica.c.cnpj,
+        pessoa_juridica.c.razao_social
+    ).select_from(
+        cliente
+        .outerjoin(pessoa_fisica, pessoa_fisica.c.cliente_id == cliente.c.id)
+        .outerjoin(pessoa_juridica, pessoa_juridica.c.cliente_id == cliente.c.id)
+    )
+    rows = await database.fetch_all(query)
+    return [_mapear_cliente(row) for row in rows]
+
 
 async def obter_cliente(cliente_id):
     # query = cliente.select().where(cliente.c.id == cliente_id)
@@ -101,3 +125,33 @@ async def deletar_cliente(cliente_id: int):
         await database.execute(pessoa_juridica.delete().where(pessoa_juridica.c.cliente_id == cliente_id))
         result = await database.execute(cliente.delete().where(cliente.c.id == cliente_id))
         return result>0 # se apagou alguma linha
+
+
+async def atualizar_cliente(cliente_id: int, cliente_json):
+    dicio_dados = cliente_json.model_dump(exclude_unset=True)
+    tipo = dicio_dados.pop("tipo")
+
+    dados_base = {}
+    dados_pf = {}
+    dados_pj = {}
+
+    for k,v in dicio_dados.items():
+        if k in cliente.c:
+            dados_base[k]=v
+    if dados_base:
+        await database.execute(cliente.update().values(**dados_base).where(cliente.c.id == cliente_id))
+
+    match tipo:
+        case 'pf':
+            for k,v in dicio_dados.items():
+                if k in pessoa_fisica.c:
+                    dados_pf[k]=v
+            if dados_pf:
+                await database.execute(pessoa_fisica.update().values(**dados_pf).where(pessoa_fisica.c.id == cliente_id))
+        case 'pj':
+            for k,v in dicio_dados.items():
+                if k in pessoa_juridica.c:
+                    dados_pj[k]=v
+            if dados_pj:
+                await database.execute(pessoa_juridica.update().values(**dados_pj).where(pessoa_juridica.c.id == cliente_id))
+    return
