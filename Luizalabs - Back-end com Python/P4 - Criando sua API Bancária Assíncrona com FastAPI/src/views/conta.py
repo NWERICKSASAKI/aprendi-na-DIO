@@ -1,12 +1,21 @@
 from pydantic import BaseModel, AwareDatetime
+from typing import Literal
 
 class ContaOut(BaseModel):
-    id: int  # numero da conta
+    id: int
     saldo: float
-    numero_conta: int  # numero da conta
+    numero_conta: int 
     agencia: str
-    cliente_id: int
-    historico_id: int
     cadastrado_em: AwareDatetime
+
+class ContaCorrenteOut(ContaOut):
+    tipo: Literal["cc"] = "cc"
+    cc_id: int
     limite: float
     limite_saques: int
+
+class ContaEmpresarialOut(ContaOut):
+    tipo: Literal["ce"] = "ce"
+    ce_id: int
+    emprestimo: float
+    emprestimo_limite: float

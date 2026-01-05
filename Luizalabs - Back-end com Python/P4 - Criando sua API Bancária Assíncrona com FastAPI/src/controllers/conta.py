@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, status
 
-from src.schemas.conta import ContaIn, ContaInEdit
+from src.schemas.conta import ContaCorrenteIn, ContaEmpresarialIn
+from src.schemas.conta import ContaCorrenteInEdit, ContaEmpresarialInEdit
 from src.views.conta import ContaOut
 from src.views.transacao import TransacaoOut
 
