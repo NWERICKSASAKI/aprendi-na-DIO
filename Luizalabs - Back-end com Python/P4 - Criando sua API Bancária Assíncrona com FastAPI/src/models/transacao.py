@@ -8,5 +8,6 @@ transacao = sa.Table(
     sa.Column('conta_id', sa.Integer, sa.ForeignKey('conta.id')),
     sa.Column('valor', sa.Float, nullable=False),
     sa.Column('tipo', sa.String(1), nullable=False),
+    sa.Column('com_sucesso', sa.Boolean, nullable=False),
     sa.Column('cadastrado_em', sa.TIMESTAMP(timezone=True), nullable=False)
 )

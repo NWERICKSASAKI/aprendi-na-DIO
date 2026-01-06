@@ -5,5 +5,5 @@ class TransacaoOut(BaseModel):
     conta_id: int
     valor: float
     tipo: str
+    com_sucesso: bool
     cadastrado_em: AwareDatetime
-    
