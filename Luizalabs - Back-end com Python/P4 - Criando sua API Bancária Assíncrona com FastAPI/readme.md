@@ -754,7 +754,6 @@ conta = sa.Table(
     metadata,
     sa.Column('id', sa.Integer, primary_key=True, autoincrement=True),
     sa.Column('saldo', sa.Float),
-    sa.Column('numero', sa.Integer, unique=True, autoincrement=True),
     sa.Column('agencia', sa.String(4)),
     sa.Column('cadastrado_em', sa.TIMESTAMP(timezone=True), nullable=True)
 )
@@ -799,31 +798,27 @@ from pydantic import BaseModel, Field
 from typing import Literal
 
 class ContaIn(BaseModel):
-    numero_conta: int 
     agencia: str = "0001"
 
 class ContaInEdit(BaseModel):
-    numero_conta: int | None = None
     agencia: str | None = None
 
 class ContaCorrenteIn(ContaIn):
     tipo: Literal["cc"] = "cc"
     limite: float = Field(ge=0)
-    limites_saques: int = Field(ge=0)
+    limite_saque: int = Field(ge=0)
 
 class ContaCorrenteInEdit(ContaInEdit):
     tipo: str = Literal["cc"]
     limite: float | None = Field(default=None, ge=0)
-    limites_saques: int | None = Field(default=None, ge=0)
+    limite_saque: int | None = Field(default=None, ge=0)
 
 class ContaEmpresarialIn(ContaIn):
     tipo: str = Literal["ce"]
-    emprestimo: float = Field(ge=0)
     emprestimo_limite: float = Field(ge=0)
 
 class ContaEmpresarialInEdit(ContaInEdit):
     tipo: str = Literal["ce"]
-    emprestimo: float | None  = Field(default=None, ge=0)
     emprestimo_limite: float | None  = Field(default=None, ge=0)
 ```
 
@@ -836,7 +831,6 @@ from typing import Literal
 class ContaOut(BaseModel):
     id: int
     saldo: float
-    numero_conta: int 
     agencia: str
     cadastrado_em: AwareDatetime
 
@@ -891,14 +885,183 @@ async def exibir_saldo(conta_id: int):
 @router.post("/", status_code=status.HTTP_201_CREATED)
 async def criar_conta(conta:ContaIn):
     conta_id = await services.criar_conta(conta)
+    return f"Criado conta ID {conta_id} com sucesso!"
 
 @router.patch("/{conta_id}", status_code=status.HTTP_202_ACCEPTED)
 async def editar_conta(conta_id:int, conta:ContaInEdit):
     await services.editar_conta(conta_id, conta)
-    return f"Conta ID {conta_id} criada com sucesso!"
+    return f"Conta ID {conta_id} editada com sucesso!"
 
 @router.delete("/{conta_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def deletar_conta(conta_id: int):
     await services.deletar_conta(conta_id)
     return
 ```
+
+Por fim, `src/services/conta.py`:
+
+```py
+import sqlalchemy as sa
+from src.database import database
+from src.models.conta import conta, conta_corrente, conta_empresarial
+from datetime import datetime, timezone
+
+
+async def _criar_conta_base(conta_json) -> int:
+    query = conta.insert().values(
+        saldo = 0,
+        agencia = conta_json.agencia,
+        cadastrado_em = datetime.now(timezone.utc)
+    )
+    id = await database.execute(query)
+    return id
+
+async def _criar_conta_corrente(conta_id, conta_json) -> int:
+    query = conta_corrente.insert().values(
+        conta_id = conta_id,
+        limite = conta_json.limite,
+        limite_saque = conta_json.limite_saque
+    )
+    id = await database.execute(query)
+    return id
+
+async def _criar_conta_empresarial(conta_id, conta_json) -> int:
+    query = conta_empresarial.insert().values(
+        conta_id = conta_id,
+        emprestimo = 0,
+        emprestimo_limite = conta_json.emprestimo_limite
+    )
+    id = await database.execute(query)
+    return id
+
+async def criar_conta(conta_json) -> int:
+    async with database.transaction():
+        id = await _criar_conta_base(conta_json)
+        match conta_json.tipo:
+            case "cc":
+                await _criar_conta_corrente(id, conta_json)
+            case "ce":
+                await _criar_conta_empresarial(id, conta_json)
+        return id
+
+
+def _mapear_conta(row) -> dict:
+    base = {
+        "id": row["id"],
+        "saldo": row["saldo"],
+        "agencia": row["agencia"],
+        "cadastrado_em": row["cadastrado_em"].replace(tzinfo=timezone.utc)
+    }
+    if row["cc_id"]:
+        return {
+            **base,
+            "cc_id": row["cc_id"],
+            "tipo": "cc",
+            "limite": row["limite"],
+            "limite_saques": row["limite_saque"]
+        }
+    if row["ce_id"]:
+        return{
+            **base,
+            "ce_id": row["ce_id"],
+            "tipo": "ce",
+            "emprestimo": row["emprestimo"],
+            "emprestimo_limite": row["emprestimo_limite"]
+        }
+    raise ValueError(f"Conta sem CC/CE associado: {dict(row)}")
+
+async def listar_contas() -> list:
+    query = sa.select(
+        conta.c.id,
+        conta.c.saldo,
+        conta.c.agencia,
+        conta.c.cadastrado_em,
+
+        conta_corrente.c.id.label('cc_id'),
+        conta_corrente.c.limite,
+        conta_corrente.c.limite_saque,
+
+        conta_empresarial.c.id.label('ce_id'),
+        conta_empresarial.c.emprestimo,
+        conta_empresarial.c.emprestimo_limite
+    ).select_from(
+        conta
+        .outerjoin(conta_corrente, conta_corrente.c.conta_id == conta.c.id)
+        .outerjoin(conta_empresarial, conta_empresarial.c.conta_id == conta.c.id)
+    )
+    rows = await database.fetch_all(query)
+    return [_mapear_conta(row) for row in rows]
+
+
+async def obter_conta(conta_id: int) -> dict:
+    query = sa.select(
+        conta.c.id,
+        conta.c.saldo,
+        conta.c.agencia,
+        conta.c.cadastrado_em,
+
+        conta_corrente.c.id.label('cc_id'),
+        conta_corrente.c.limite,
+        conta_corrente.c.limite_saque,
+
+        conta_empresarial.c.id.label('ce_id'),
+        conta_empresarial.c.emprestimo,
+        conta_empresarial.c.emprestimo_limite
+    ).select_from(
+        conta
+        .outerjoin(conta_corrente, conta_corrente.c.conta_id == conta_id)
+        .outerjoin(conta_empresarial, conta_empresarial.c.conta_id == conta_id)
+    )
+    row = await database.fetch_one(query)
+    if not row:
+        return None
+    return _mapear_conta(row)
+
+
+async def exibir_saldo(conta_id: int) -> float:
+    query = sa.select(
+        conta.c.saldo
+    ).where(conta.c.id == conta_id)
+    row = await database.fetch_one(query)
+    return row["saldo"]
+
+
+async def deletar_conta(conta_id: int) -> bool:
+    async with database.transaction():
+        await database.execute(conta_corrente.delete().where(conta_corrente.c.conta_id == conta_id))
+        await database.execute(conta_empresarial.delete().where(conta_empresarial.c.conta_id == conta_id))
+        result = await database.execute(conta.delete().where(conta.c.id == conta_id)) 
+        return result>0
+
+
+async def editar_conta(conta_id: int, conta_json):
+    dicio_dados = conta_json.model_dump(exclude_unset=True)
+    tipo = dicio_dados.pop("tipo")
+
+    dados_base = {}
+    for k,v in dicio_dados.items():
+        if k in conta.c:
+            dados_base[k]=v
+    if dados_base:
+        await database.execute(conta.update().values(**dados_base).where(conta.c.id == conta_id))
+ 
+    match tipo:
+        case "cc":
+            dados_cc = {}
+            for k,v in dicio_dados.items():
+                if k in conta_corrente.c:
+                    dados_cc[k]=v
+            if dados_base:
+                await database.execute(conta_corrente.update().values(**dados_cc).where(conta_corrente.c.id == conta_id))
+
+        case "ce":
+            dados_ce = {}
+            for k,v in dicio_dados.items():
+                if k in conta_empresarial.c:
+                    dados_ce[k]=v
+            if dados_base:
+                await database.execute(conta_empresarial.update().values(**dados_ce).where(conta_empresarial.c.id == conta_id))
+    return
+```
+
+### 4 

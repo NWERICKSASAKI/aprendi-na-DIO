@@ -30,7 +30,7 @@ async def _criar_cliente_pj(id, cliente_json) -> int:
         id = await database.execute(query)
         return id
 
-async def criar_cliente(cliente_json):
+async def criar_cliente(cliente_json) -> int:
     async with database.transaction(): # commit automático e rollback em caso de erro
         id = await _criar_cliente_base(cliente_json)
         match cliente_json.tipo:
@@ -67,7 +67,7 @@ def _mapear_cliente(row) -> dict:
     raise ValueError("Cliente sem PF/PJ associado")
 
 
-async def listar_clientes():
+async def listar_clientes() -> list:
 
     query = sa.select(
         cliente.c.id,
@@ -92,8 +92,6 @@ async def listar_clientes():
 
 
 async def obter_cliente(cliente_id):
-    # query = cliente.select().where(cliente.c.id == cliente_id)
-
     query = sa.select(
         cliente.c.id.label("id"),
         cliente.c.endereco,
@@ -119,8 +117,8 @@ async def obter_cliente(cliente_id):
     return _mapear_cliente(row)
 
 
-async def deletar_cliente(cliente_id: int):
-    async with  database.transaction():
+async def deletar_cliente(cliente_id: int) -> bool:
+    async with database.transaction():
         await database.execute(pessoa_fisica.delete().where(pessoa_fisica.c.cliente_id == cliente_id))
         await database.execute(pessoa_juridica.delete().where(pessoa_juridica.c.cliente_id == cliente_id))
         result = await database.execute(cliente.delete().where(cliente.c.id == cliente_id))
@@ -132,9 +130,6 @@ async def atualizar_cliente(cliente_id: int, cliente_json):
     tipo = dicio_dados.pop("tipo")
 
     dados_base = {}
-    dados_pf = {}
-    dados_pj = {}
-
     for k,v in dicio_dados.items():
         if k in cliente.c:
             dados_base[k]=v
@@ -143,12 +138,15 @@ async def atualizar_cliente(cliente_id: int, cliente_json):
 
     match tipo:
         case 'pf':
+            dados_pf = {}
             for k,v in dicio_dados.items():
                 if k in pessoa_fisica.c:
                     dados_pf[k]=v
             if dados_pf:
                 await database.execute(pessoa_fisica.update().values(**dados_pf).where(pessoa_fisica.c.id == cliente_id))
+
         case 'pj':
+            dados_pj = {}
             for k,v in dicio_dados.items():
                 if k in pessoa_juridica.c:
                     dados_pj[k]=v

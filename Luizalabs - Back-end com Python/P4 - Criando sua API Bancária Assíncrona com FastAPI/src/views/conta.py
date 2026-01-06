@@ -4,7 +4,6 @@ from typing import Literal
 class ContaOut(BaseModel):
     id: int
     saldo: float
-    numero_conta: int 
     agencia: str
     cadastrado_em: AwareDatetime
 

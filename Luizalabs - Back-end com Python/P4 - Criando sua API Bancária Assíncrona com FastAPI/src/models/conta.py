@@ -6,7 +6,6 @@ conta = sa.Table(
     metadata,
     sa.Column('id', sa.Integer, primary_key=True, autoincrement=True),
     sa.Column('saldo', sa.Float),
-    sa.Column('numero', sa.Integer, unique=True, autoincrement=True),
     sa.Column('agencia', sa.String(4)),
     sa.Column('cadastrado_em', sa.TIMESTAMP(timezone=True), nullable=True)
 )

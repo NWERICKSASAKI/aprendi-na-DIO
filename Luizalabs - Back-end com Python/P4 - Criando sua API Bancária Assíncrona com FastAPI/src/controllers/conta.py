@@ -33,11 +33,12 @@ async def exibir_saldo(conta_id: int):
 @router.post("/", status_code=status.HTTP_201_CREATED)
 async def criar_conta(conta:ContaIn):
     conta_id = await services.criar_conta(conta)
+    return f"Criado conta ID {conta_id} com sucesso!"
 
 @router.patch("/{conta_id}", status_code=status.HTTP_202_ACCEPTED)
 async def editar_conta(conta_id:int, conta:ContaInEdit):
     await services.editar_conta(conta_id, conta)
-    return f"Conta ID {conta_id} criada com sucesso!"
+    return f"Conta ID {conta_id} editada com sucesso!"
 
 @router.delete("/{conta_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def deletar_conta(conta_id: int):
