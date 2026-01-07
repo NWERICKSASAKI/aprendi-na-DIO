@@ -6,16 +6,29 @@ from src.services import conta as conta_services
 from datetime import datetime, timezone, time, date
 
 
+def _mapear_transacao(row):
+    return {
+        "id": row["id"],
+        "conta_id": row["conta_id"],
+        "valor": row["valor"],
+        "tipo": row["tipo"],
+        "com_sucesso": row["com_sucesso"],
+        "cadastrado_em": row["cadastrado_em"].replace(tzinfo=timezone.utc)
+    }
+
 async def listar_transacoes() -> list:
-    pass
+    rows = await database.fetch_all(transacao.select())
+    return [_mapear_transacao(row) for row in rows]
 
 
 async def visualizar_transacao(transacao_id: int) -> dict:
-    pass
+    row = await database.fetch_one(transacao.select().where(transacao.c.id == transacao_id))
+    return _mapear_transacao(row)
 
 
 async def visualizar_extrato_cliente(cliente_id: int) -> list:
-    pass
+    rows = await database.fetch_all(transacao.select().where(transacao.c.conta_id == cliente_id))
+    return [_mapear_transacao(row) for row in rows]
 
 
 async def _cadastrar_transacao(transacao_json, tipo_transacao:str, sucesso:bool) -> int:
