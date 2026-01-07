@@ -18,10 +18,12 @@ async def visualizar_transacao(transacao_id: int):
 async def visualizar_extrato_cliente(cliente_id: int):
     return await services.visualizar_extrato_cliente(cliente_id)
 
-@router.post("/conta/{conta_id}/sacar", response_model=TransacaoOut, status_code=status.HTTP_202_ACCEPTED)
+@router.post("/sacar/", response_model=TransacaoOut, status_code=status.HTTP_202_ACCEPTED)
 async def realizar_saque(transacao:TransacaoIn):
-    return await services.realizar_saque(transacao)
+    id = await services.realizar_transacao(transacao, tipo_transacao="s")
+    return f"Saque realizado! ID {id}"
 
-@router.post("/conta/{conta_id}/depositar", response_model=TransacaoOut, status_code=status.HTTP_202_ACCEPTED)
+@router.post("/depositar/", status_code=status.HTTP_202_ACCEPTED)
 async def realizar_deposito(transacao:TransacaoIn):
-    return await services.realizar_deposito(transacao)
+    id = await services.realizar_transacao(transacao, tipo_transacao="d")
+    return f"Deposito realizado com sucesso! ID {id}"

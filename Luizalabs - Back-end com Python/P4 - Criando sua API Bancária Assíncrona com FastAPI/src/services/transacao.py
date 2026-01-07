@@ -2,24 +2,84 @@ import sqlalchemy as sa
 from src.database import database
 from src.models.conta import conta, conta_corrente, conta_empresarial
 from src.models.transacao import transacao
-from datetime import datetime, timezone
+from src.services import conta as conta_services
+from datetime import datetime, timezone, time, date
 
 
-async def listar_transacoes():
+async def listar_transacoes() -> list:
     pass
 
 
-async def visualizar_transacao(transacao_id: int):
+async def visualizar_transacao(transacao_id: int) -> dict:
     pass
 
 
-async def visualizar_extrato_cliente(cliente_id: int):
+async def visualizar_extrato_cliente(cliente_id: int) -> list:
     pass
 
 
-async def realizar_saque(transacao_json):
-    pass
+async def _cadastrar_transacao(transacao_json, tipo_transacao:str, sucesso:bool) -> int:
+    query = transacao.insert().values(
+        conta_id = transacao_json.conta_id,
+        valor = transacao_json.valor,
+        tipo = tipo_transacao,
+        com_sucesso = sucesso,
+        cadastrado_em = datetime.now(timezone.utc)
+    )
+    transacao_id: int = await database.execute(query)
+    return transacao_id
 
+async def qtd_valor_saques(conta_id) -> tuple[int, float]:
+    hoje = date.today()
+    inicio = datetime.combine(hoje, time.min)
+    fim = datetime.combine(hoje, time.max)
 
-async def realizar_deposito(transacao_json):
-    pass
+    query_qtd = sa.select(sa.func.count()).select_from(transacao).where(
+        transacao.c.conta_id == conta_id,
+        transacao.c.tipo == "s",
+        transacao.c.cadastrado_em.between(inicio,fim)
+    )
+    qtd_saques_hoje:int = await database.fetch_val(query_qtd)
+
+    query_valor = sa.select(sa.func.coalesce(sa.func.sum(transacao.c.valor), 0)).where(
+        transacao.c.conta_id == conta_id,
+        transacao.c.tipo == "s",
+        transacao.c.cadastrado_em.between(inicio,fim)
+    )
+    valor_saques_hoje:float = await database.fetch_val(query_valor)
+
+    return (qtd_saques_hoje, valor_saques_hoje)
+
+async def _transacao_autorizada(transacao_json, conta_json) -> bool:
+    if transacao_json.tipo == "s":
+        tipo_conta:str = conta_json["tipo"]
+        if transacao_json.valor <= conta_json["saldo"]:
+            if tipo_conta == 'cc':
+                conta_id = conta_json["conta_id"]
+                qtd_saques_hoje, valor_saques_hoje = qtd_valor_saques(conta_id)
+                if qtd_saques_hoje >= conta_json.limite:
+                    return False
+                if valor_saques_hoje >= conta_json["limite_saque"] + transacao_json.valor:
+                    return False
+            return True
+        return False
+    return True
+
+async def _alterar_saldo(transacao_json, tipo:str, conta_json):
+    conta_id: int =  transacao_json.conta_id
+    mod:int = 1 if tipo=='d' else -1
+    saldo_final:float = conta_json["saldo"] + mod * transacao_json.valor
+    query = conta.update().values(saldo = saldo_final).where(conta.c.id == conta_id)
+    await database.execute(query)
+    return
+
+async def realizar_transacao(transacao_json, tipo_transacao:str):
+    async with database.transaction():
+        conta_id: int = transacao_json.conta_id
+        conta_json: dict = await conta_services.obter_conta(conta_id)
+        sucesso: bool = True
+        if tipo_transacao == 's': # saque
+            sucesso = await _transacao_autorizada(transacao_json, conta_json)
+        await _alterar_saldo(transacao_json, tipo=tipo_transacao, conta_json=conta_json)
+        transacao_id: int = await _cadastrar_transacao(transacao_json, tipo_transacao=tipo_transacao, sucesso=sucesso)
+        return transacao_id

@@ -1,6 +1,7 @@
 import sqlalchemy as sa
 from src.database import database
 from src.models.conta import conta, conta_corrente, conta_empresarial
+from src.services import transacao as transacao_services
 from datetime import datetime, timezone
 
 
@@ -54,7 +55,9 @@ def _mapear_conta(row) -> dict:
             **base,
             "cc_id": row["cc_id"],
             "tipo": "cc",
+            "valor_saques": row["valor_saques"],
             "limite": row["limite"],
+            "qtd_saques": row["qtd_saques"],
             "limite_saques": row["limite_saque"]
         }
     if row["ce_id"]:
@@ -110,9 +113,14 @@ async def obter_conta(conta_id: int) -> dict:
         .outerjoin(conta_empresarial, conta_empresarial.c.conta_id == conta_id)
     )
     row = await database.fetch_one(query)
-    if not row:
+    row_dict = dict(row)
+
+    if row_dict["cc_id"]:
+        row_dict["qtd_saques"], row_dict["valor_saques"] = await transacao_services.qtd_valor_saques(conta_id)
+
+    if not row_dict:
         return None
-    return _mapear_conta(row)
+    return _mapear_conta(row_dict)
 
 
 async def exibir_saldo(conta_id: int) -> float:

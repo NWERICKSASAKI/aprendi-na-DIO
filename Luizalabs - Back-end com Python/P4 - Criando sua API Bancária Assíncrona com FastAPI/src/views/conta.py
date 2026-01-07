@@ -10,7 +10,9 @@ class ContaOut(BaseModel):
 class ContaCorrenteOut(ContaOut):
     tipo: Literal["cc"] = "cc"
     cc_id: int
+    valor_saques: float
     limite: float
+    qtd_saques: int
     limite_saques: int
 
 class ContaEmpresarialOut(ContaOut):
