@@ -4,7 +4,7 @@ from src.models.conta import conta, conta_corrente, conta_empresarial
 from src.models.transacao import transacao
 from src.services import conta as conta_services
 from datetime import datetime, timezone, time, date
-
+from src import exceptions
 
 def _mapear_transacao(row):
     return {
@@ -23,6 +23,8 @@ async def listar_transacoes() -> list:
 
 async def visualizar_transacao(transacao_id: int) -> dict:
     row = await database.fetch_one(transacao.select().where(transacao.c.id == transacao_id))
+    if not row:
+        raise exceptions.ErrorNotFound()
     return _mapear_transacao(row)
 
 
@@ -89,6 +91,8 @@ async def _alterar_saldo(transacao_json, tipo:str, conta_json):
 async def realizar_transacao(transacao_json, tipo_transacao:str):
     async with database.transaction():
         conta_id: int = transacao_json.conta_id
+        if conta_services._id_existe(conta_id):
+            raise exceptions.ErrorNotFound(f"Conta de ID {conta_id} não encontrada!")
         conta_json: dict = await conta_services.obter_conta(conta_id)
         sucesso: bool = True
         if tipo_transacao == 's': # saque

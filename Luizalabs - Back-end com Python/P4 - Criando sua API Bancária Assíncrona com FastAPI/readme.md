@@ -1068,4 +1068,29 @@ async def editar_conta(conta_id: int, conta_json):
 
 Recomendo olhar o meu repositório, mas basicamente seguiu o mesmo padrão das anteriores.
 
+Porém precisei alterar a requisição de `conta` para acrescentar a quantidade e volume de saque ao dia que se encontra em `src/services/transacao.py`:
+
+```py
+async def qtd_valor_saques(conta_id) -> tuple[int, float]:
+    hoje = date.today()
+    inicio = datetime.combine(hoje, time.min)
+    fim = datetime.combine(hoje, time.max)
+
+    query_qtd = sa.select(sa.func.count()).select_from(transacao).where(
+        transacao.c.conta_id == conta_id,
+        transacao.c.tipo == "s",
+        transacao.c.cadastrado_em.between(inicio,fim)
+    )
+    qtd_saques_hoje:int = await database.fetch_val(query_qtd)
+
+    query_valor = sa.select(sa.func.coalesce(sa.func.sum(transacao.c.valor), 0)).where(
+        transacao.c.conta_id == conta_id,
+        transacao.c.tipo == "s",
+        transacao.c.cadastrado_em.between(inicio,fim)
+    )
+    valor_saques_hoje:float = await database.fetch_val(query_valor)
+
+    return (qtd_saques_hoje, valor_saques_hoje)
+```
+
 ### 4 

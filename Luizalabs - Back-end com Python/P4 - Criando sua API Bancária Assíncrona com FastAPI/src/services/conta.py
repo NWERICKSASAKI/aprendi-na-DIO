@@ -3,7 +3,14 @@ from src.database import database
 from src.models.conta import conta, conta_corrente, conta_empresarial
 from src.services import transacao as transacao_services
 from datetime import datetime, timezone
+from src import exceptions
 
+async def _id_existe(id) -> bool:
+    query = conta.select(conta.id).where(conta.c.id == id)
+    resultado = await database.fetch_one(query)
+    if not resultado:
+        return False
+    return True
 
 async def _criar_conta_base(conta_json) -> int:
     query = conta.insert().values(
@@ -68,7 +75,8 @@ def _mapear_conta(row) -> dict:
             "emprestimo": row["emprestimo"],
             "emprestimo_limite": row["emprestimo_limite"]
         }
-    raise ValueError(f"Conta sem CC/CE associado: {dict(row)}")
+    raise exceptions.ErrorNotFound(f"Conta sem CC/CE associado: {dict(row)}")
+
 
 async def listar_contas() -> list:
     query = sa.select(
@@ -94,6 +102,8 @@ async def listar_contas() -> list:
 
 
 async def obter_conta(conta_id: int) -> dict:
+    if not await _id_existe(conta_id):
+        raise exceptions.ErrorNotFound(f"Conta com ID {conta_id} não encontrada!")
     query = sa.select(
         conta.c.id,
         conta.c.saldo,
@@ -111,15 +121,13 @@ async def obter_conta(conta_id: int) -> dict:
         conta
         .outerjoin(conta_corrente, conta_corrente.c.conta_id == conta_id)
         .outerjoin(conta_empresarial, conta_empresarial.c.conta_id == conta_id)
-    )
+    ).where(conta.c.id == conta_id)
     row = await database.fetch_one(query)
     row_dict = dict(row)
 
     if row_dict["cc_id"]:
         row_dict["qtd_saques"], row_dict["valor_saques"] = await transacao_services.qtd_valor_saques(conta_id)
 
-    if not row_dict:
-        return None
     return _mapear_conta(row_dict)
 
 
@@ -128,6 +136,8 @@ async def exibir_saldo(conta_id: int) -> float:
         conta.c.saldo
     ).where(conta.c.id == conta_id)
     row = await database.fetch_one(query)
+    if not row:
+        raise exceptions.ErrorNotFound(f"Conta com ID {conta_id} não encontrada!")
     return row["saldo"]
 
 
@@ -140,30 +150,33 @@ async def deletar_conta(conta_id: int) -> bool:
 
 
 async def editar_conta(conta_id: int, conta_json):
-    dicio_dados = conta_json.model_dump(exclude_unset=True)
-    tipo = dicio_dados.pop("tipo")
+    if not await _id_existe(conta_id):
+        raise exceptions.ErrorNotFound(f"Conta com ID {conta_id} não encontrada!")
+    async with database.transaction():
+        dicio_dados = conta_json.model_dump(exclude_unset=True)
+        tipo = dicio_dados.pop("tipo")
 
-    dados_base = {}
-    for k,v in dicio_dados.items():
-        if k in conta.c:
-            dados_base[k]=v
-    if dados_base:
-        await database.execute(conta.update().values(**dados_base).where(conta.c.id == conta_id))
- 
-    match tipo:
-        case "cc":
-            dados_cc = {}
-            for k,v in dicio_dados.items():
-                if k in conta_corrente.c:
-                    dados_cc[k]=v
-            if dados_base:
-                await database.execute(conta_corrente.update().values(**dados_cc).where(conta_corrente.c.id == conta_id))
+        dados_base = {}
+        for k,v in dicio_dados.items():
+            if k in conta.c:
+                dados_base[k]=v
+        if dados_base:
+            await database.execute(conta.update().values(**dados_base).where(conta.c.id == conta_id))
+    
+        match tipo:
+            case "cc":
+                dados_cc = {}
+                for k,v in dicio_dados.items():
+                    if k in conta_corrente.c:
+                        dados_cc[k]=v
+                if dados_base:
+                    await database.execute(conta_corrente.update().values(**dados_cc).where(conta_corrente.c.id == conta_id))
 
-        case "ce":
-            dados_ce = {}
-            for k,v in dicio_dados.items():
-                if k in conta_empresarial.c:
-                    dados_ce[k]=v
-            if dados_base:
-                await database.execute(conta_empresarial.update().values(**dados_ce).where(conta_empresarial.c.id == conta_id))
-    return
+            case "ce":
+                dados_ce = {}
+                for k,v in dicio_dados.items():
+                    if k in conta_empresarial.c:
+                        dados_ce[k]=v
+                if dados_base:
+                    await database.execute(conta_empresarial.update().values(**dados_ce).where(conta_empresarial.c.id == conta_id))
+        return

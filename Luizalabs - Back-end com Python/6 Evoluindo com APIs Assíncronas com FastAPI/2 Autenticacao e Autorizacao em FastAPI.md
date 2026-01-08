@@ -45,13 +45,13 @@ class LoginOut(BaseModel):
 `security.py`:
 
 ```py
-import tim
+import time
 from typing import Annotated
 from uuid import uuid4
 
 import jwt
 from fastapi import Depends, HTTPException, Request, status
-from fastapi.secutiry import HTTPBearer
+from fastapi.security import HTTPBearer
 from pydantic import BaseModel
 
 SECRET = "my-secret"
@@ -98,7 +98,7 @@ async def decode_jwt(token: str) -> JWTToken | None:
         return None
 
 class JWTBearer(HTTPBearer):
-    def __init__(self, auto_error:bool = True)
+    def __init__(self, auto_error:bool = True):
         super(JWTBearer, self).__init__(auto_error=auto_error)
 
     # esse __call__ é pra sobrescrever o comportamento do Bearer
@@ -115,7 +115,7 @@ class JWTBearer(HTTPBearer):
                     detail="invalid authorizarion scheme."
                 )
             
-            payload = await.decode_jwt(credentials)
+            payload = await decode_jwt(credentials)
             if not payload:
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
@@ -130,11 +130,10 @@ class JWTBearer(HTTPBearer):
 async def get_current_user(token: Annotated[JWTToken, Depends(JWTBearer())]) -> dict[str, int]:
     return {"user_id": token.access_token.sub} # sub é o user id
 
-def login_required(current_user: Annotated[dict[str, int], Dedends(get_current_user)]):
+def login_required(current_user: Annotated[dict[str, int], Depends(get_current_user)]):
     if not current_user: # caso nao tiver user_id
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
     return current_user
-
 ```
 
 `main.py`:
