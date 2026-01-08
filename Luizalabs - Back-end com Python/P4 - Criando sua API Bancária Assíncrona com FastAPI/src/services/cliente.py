@@ -1,12 +1,13 @@
 import sqlalchemy as sa
 from src.database import database
 from src.models.cliente import cliente, pessoa_fisica, pessoa_juridica
+from src.services import conta
 from datetime import datetime, timezone
 from src import exceptions
 
 
 async def _id_existe(id) -> bool:
-    query = cliente.select(cliente.id).where(cliente.c.id == id)
+    query = sa.select(cliente.c.id).where(cliente.c.id == id)
     resultado = await database.fetch_one(query)
     if not resultado:
         return False
@@ -77,7 +78,6 @@ def _mapear_cliente(row) -> dict:
 
 
 async def listar_clientes() -> list:
-
     query = sa.select(
         cliente.c.id,
         cliente.c.endereco,
@@ -128,8 +128,8 @@ async def obter_cliente(cliente_id):
 
 async def deletar_cliente(cliente_id: int) -> bool:
     async with database.transaction():
-        await database.execute(pessoa_fisica.delete().where(pessoa_fisica.c.cliente_id == cliente_id))
-        await database.execute(pessoa_juridica.delete().where(pessoa_juridica.c.cliente_id == cliente_id))
+        # await database.execute(pessoa_fisica.delete().where(pessoa_fisica.c.cliente_id == cliente_id))
+        # await database.execute(pessoa_juridica.delete().where(pessoa_juridica.c.cliente_id == cliente_id))
         result = await database.execute(cliente.delete().where(cliente.c.id == cliente_id))
         return result>0 # se apagou alguma linha
 

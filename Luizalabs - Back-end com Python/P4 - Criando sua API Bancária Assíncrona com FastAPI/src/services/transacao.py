@@ -91,7 +91,7 @@ async def _alterar_saldo(transacao_json, tipo:str, conta_json):
 async def realizar_transacao(transacao_json, tipo_transacao:str):
     async with database.transaction():
         conta_id: int = transacao_json.conta_id
-        if conta_services._id_existe(conta_id):
+        if not await conta_services._id_existe(conta_id):
             raise exceptions.ErrorNotFound(f"Conta de ID {conta_id} não encontrada!")
         conta_json: dict = await conta_services.obter_conta(conta_id)
         sucesso: bool = True
@@ -100,3 +100,7 @@ async def realizar_transacao(transacao_json, tipo_transacao:str):
         await _alterar_saldo(transacao_json, tipo=tipo_transacao, conta_json=conta_json)
         transacao_id: int = await _cadastrar_transacao(transacao_json, tipo_transacao=tipo_transacao, sucesso=sucesso)
         return transacao_id
+
+async def deletar_transacao_conta(conta_id):
+    result = await database.execute(transacao.delete().where(transacao.c.conta_id == conta_id))
+    return result>0

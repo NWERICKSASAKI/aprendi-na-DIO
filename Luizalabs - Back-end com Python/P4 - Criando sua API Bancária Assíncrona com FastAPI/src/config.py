@@ -8,5 +8,7 @@ class Settings(BaseSettings):
 
     database_url: str
     environment: str = "production"
+    secret: str
+    algorithm: str
 
 settings = Settings()

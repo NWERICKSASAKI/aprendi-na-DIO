@@ -2,9 +2,11 @@ from pydantic import BaseModel, Field
 from typing import Literal
 
 class ContaIn(BaseModel):
+    cliente_id: int
     agencia: str = "0001"
 
 class ContaInEdit(BaseModel):
+    cliente_id: int | None = None
     agencia: str | None = None
 
 class ContaCorrenteIn(ContaIn):

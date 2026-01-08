@@ -5,6 +5,7 @@ conta = sa.Table(
     'conta',
     metadata,
     sa.Column('id', sa.Integer, primary_key=True, autoincrement=True),
+    sa.Column('cliente_id', sa.Integer, sa.ForeignKey('cliente.id', ondelete='CASCADE')),
     sa.Column('saldo', sa.Float),
     sa.Column('agencia', sa.String(4)),
     sa.Column('cadastrado_em', sa.TIMESTAMP(timezone=True), nullable=True)

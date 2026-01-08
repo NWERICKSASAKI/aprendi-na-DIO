@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from src import exceptions
 
 async def _id_existe(id) -> bool:
-    query = conta.select(conta.id).where(conta.c.id == id)
+    query = sa.select(conta.c.id).where(conta.c.id == id)
     resultado = await database.fetch_one(query)
     if not resultado:
         return False
@@ -97,8 +97,15 @@ async def listar_contas() -> list:
         .outerjoin(conta_corrente, conta_corrente.c.conta_id == conta.c.id)
         .outerjoin(conta_empresarial, conta_empresarial.c.conta_id == conta.c.id)
     )
+    lista = []
     rows = await database.fetch_all(query)
-    return [_mapear_conta(row) for row in rows]
+    for row in rows:
+        row_dict = dict(row)
+        if row_dict["cc_id"]:
+            row_dict["qtd_saques"], row_dict["valor_saques"] = await transacao_services.qtd_valor_saques(row_dict["id"])
+        row_dict = _mapear_conta(row_dict)
+        lista.append(row_dict)
+    return lista
 
 
 async def obter_conta(conta_id: int) -> dict:
@@ -124,10 +131,8 @@ async def obter_conta(conta_id: int) -> dict:
     ).where(conta.c.id == conta_id)
     row = await database.fetch_one(query)
     row_dict = dict(row)
-
     if row_dict["cc_id"]:
         row_dict["qtd_saques"], row_dict["valor_saques"] = await transacao_services.qtd_valor_saques(conta_id)
-
     return _mapear_conta(row_dict)
 
 
@@ -143,9 +148,9 @@ async def exibir_saldo(conta_id: int) -> float:
 
 async def deletar_conta(conta_id: int) -> bool:
     async with database.transaction():
-        await database.execute(conta_corrente.delete().where(conta_corrente.c.conta_id == conta_id))
-        await database.execute(conta_empresarial.delete().where(conta_empresarial.c.conta_id == conta_id))
-        result = await database.execute(conta.delete().where(conta.c.id == conta_id)) 
+        # await database.execute(conta_corrente.delete().where(conta_corrente.c.conta_id == conta_id))
+        # await database.execute(conta_empresarial.delete().where(conta_empresarial.c.conta_id == conta_id))
+        result = await database.execute(conta.delete().where(conta.c.id == conta_id))
         return result>0
 
 
