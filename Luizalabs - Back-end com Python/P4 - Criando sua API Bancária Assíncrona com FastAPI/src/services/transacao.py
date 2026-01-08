@@ -24,7 +24,7 @@ async def listar_transacoes() -> list:
 async def visualizar_transacao(transacao_id: int) -> dict:
     row = await database.fetch_one(transacao.select().where(transacao.c.id == transacao_id))
     if not row:
-        raise exceptions.ErrorNotFound()
+        raise exceptions.Error_404_NOT_FOUND()
     return _mapear_transacao(row)
 
 
@@ -65,20 +65,20 @@ async def qtd_valor_saques(conta_id) -> tuple[int, float]:
 
     return (qtd_saques_hoje, valor_saques_hoje)
 
-async def _transacao_autorizada(transacao_json, conta_json) -> bool:
-    if transacao_json.tipo == "s":
+async def _transacao_autorizada(transacao_json, tipo_transacao:str, conta_json) -> tuple[bool,str]:
+    if tipo_transacao == "s":
         tipo_conta:str = conta_json["tipo"]
         if transacao_json.valor <= conta_json["saldo"]:
             if tipo_conta == 'cc':
-                conta_id = conta_json["conta_id"]
-                qtd_saques_hoje, valor_saques_hoje = qtd_valor_saques(conta_id)
-                if qtd_saques_hoje >= conta_json.limite:
-                    return False
-                if valor_saques_hoje >= conta_json["limite_saque"] + transacao_json.valor:
-                    return False
-            return True
-        return False
-    return True
+                conta_id = conta_json["id"]
+                qtd_saques_hoje, valor_saques_hoje = await qtd_valor_saques(conta_id)
+                if qtd_saques_hoje >= conta_json["limite"]:
+                    return False, "Quantidade de Saques excedidos"
+                if valor_saques_hoje + transacao_json.valor>= conta_json["limite_saque"]:
+                    return False, "Valor excede limite"
+            return True, ""
+        return False, "Saldo insuficiente"
+    return True, ""
 
 async def _alterar_saldo(transacao_json, tipo:str, conta_json):
     conta_id: int =  transacao_json.conta_id
@@ -92,13 +92,16 @@ async def realizar_transacao(transacao_json, tipo_transacao:str):
     async with database.transaction():
         conta_id: int = transacao_json.conta_id
         if not await conta_services._id_existe(conta_id):
-            raise exceptions.ErrorNotFound(f"Conta de ID {conta_id} não encontrada!")
+            raise exceptions.Error_404_NOT_FOUND(f"Conta de ID {conta_id} não encontrada!")
         conta_json: dict = await conta_services.obter_conta(conta_id)
         sucesso: bool = True
         if tipo_transacao == 's': # saque
-            sucesso = await _transacao_autorizada(transacao_json, conta_json)
-        await _alterar_saldo(transacao_json, tipo=tipo_transacao, conta_json=conta_json)
+            sucesso, motivo_erro = await _transacao_autorizada(transacao_json, tipo_transacao, conta_json)
         transacao_id: int = await _cadastrar_transacao(transacao_json, tipo_transacao=tipo_transacao, sucesso=sucesso)
+        if not sucesso:
+            raise exceptions.Error_403_FORBIDDEN(motivo_erro)
+            return
+        await _alterar_saldo(transacao_json, tipo=tipo_transacao, conta_json=conta_json)
         return transacao_id
 
 async def deletar_transacao_conta(conta_id):

@@ -18,7 +18,7 @@ async def visualizar_transacao(transacao_id: int):
 async def visualizar_extrato_cliente(cliente_id: int):
     return await services.visualizar_extrato_cliente(cliente_id)
 
-@router.post("/sacar/", response_model=TransacaoOut, status_code=status.HTTP_202_ACCEPTED)
+@router.post("/sacar/", status_code=status.HTTP_202_ACCEPTED)
 async def realizar_saque(transacao:TransacaoIn):
     id = await services.realizar_transacao(transacao, tipo_transacao="s")
     return f"Saque realizado! ID {id}"

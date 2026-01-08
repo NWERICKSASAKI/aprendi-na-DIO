@@ -4,7 +4,7 @@ from src.models.cliente import cliente, pessoa_fisica, pessoa_juridica
 from src.services import conta
 from datetime import datetime, timezone
 from src import exceptions
-
+from src.services import autenticacao
 
 async def _id_existe(id) -> bool:
     query = sa.select(cliente.c.id).where(cliente.c.id == id)
@@ -43,6 +43,7 @@ async def _criar_cliente_pj(id, cliente_json) -> int:
 async def criar_cliente(cliente_json) -> int:
     async with database.transaction(): # commit automático e rollback em caso de erro
         id = await _criar_cliente_base(cliente_json)
+        await autenticacao.criar_senha(id, cliente_json.senha)
         match cliente_json.tipo:
             case "pf":
                 await _criar_cliente_pf(id, cliente_json)
@@ -54,6 +55,7 @@ async def criar_cliente(cliente_json) -> int:
 def _mapear_cliente(row) -> dict:
     base = {
         "id": row["id"],
+        "contas_id": row["contas_id"],
         "endereco": row["endereco"],
         "cadastrado_em": row["cadastrado_em"].replace(tzinfo=timezone.utc) # para reconverter pro AwareDatetime
     }
@@ -97,7 +99,12 @@ async def listar_clientes() -> list:
         .outerjoin(pessoa_juridica, pessoa_juridica.c.cliente_id == cliente.c.id)
     )
     rows = await database.fetch_all(query)
-    return [_mapear_cliente(row) for row in rows]
+    lista = []
+    for row in rows:
+        dict_row = dict(row)
+        dict_row["contas_id"] = await conta.listar_contas_cliente(dict_row['id'])
+        lista.append(_mapear_cliente(dict_row))
+    return lista
 
 
 async def obter_cliente(cliente_id):
@@ -119,11 +126,12 @@ async def obter_cliente(cliente_id):
         .outerjoin(pessoa_fisica, pessoa_fisica.c.cliente_id == cliente_id)
         .outerjoin(pessoa_juridica, pessoa_juridica.c.cliente_id == cliente_id)
     ).where(cliente.c.id == cliente_id)
-
     row = await database.fetch_one(query)
     if not row:
-        raise exceptions.ErrorNotFound(f"Conta com ID {cliente_id} não encontrada!")
-    return _mapear_cliente(row)
+        raise exceptions.Error_404_NOT_FOUND
+    dict_row = dict(row)
+    dict_row["contas_id"] = await conta.listar_contas_cliente(cliente_id)
+    return _mapear_cliente(dict_row)
 
 
 async def deletar_cliente(cliente_id: int) -> bool:
@@ -136,7 +144,7 @@ async def deletar_cliente(cliente_id: int) -> bool:
 
 async def atualizar_cliente(cliente_id: int, cliente_json):
     if not await _id_existe(cliente_id):
-        raise exceptions.ErrorNotFound(f"Conta com ID {cliente_id} não encontrada!")
+        raise exceptions.Error_404_NOT_FOUND()
     
     async with database.transaction():
         dicio_dados = cliente_json.model_dump(exclude_unset=True)

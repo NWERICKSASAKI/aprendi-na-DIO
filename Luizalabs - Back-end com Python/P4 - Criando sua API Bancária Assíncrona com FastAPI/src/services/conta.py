@@ -15,6 +15,7 @@ async def _id_existe(id) -> bool:
 async def _criar_conta_base(conta_json) -> int:
     query = conta.insert().values(
         saldo = 0,
+        cliente_id = conta_json.cliente_id,
         agencia = conta_json.agencia,
         cadastrado_em = datetime.now(timezone.utc)
     )
@@ -53,6 +54,7 @@ async def criar_conta(conta_json) -> int:
 def _mapear_conta(row) -> dict:
     base = {
         "id": row["id"],
+        "cliente_id": row["cliente_id"],
         "saldo": row["saldo"],
         "agencia": row["agencia"],
         "cadastrado_em": row["cadastrado_em"].replace(tzinfo=timezone.utc)
@@ -65,7 +67,7 @@ def _mapear_conta(row) -> dict:
             "valor_saques": row["valor_saques"],
             "limite": row["limite"],
             "qtd_saques": row["qtd_saques"],
-            "limite_saques": row["limite_saque"]
+            "limite_saque": row["limite_saque"]
         }
     if row["ce_id"]:
         return{
@@ -81,6 +83,7 @@ def _mapear_conta(row) -> dict:
 async def listar_contas() -> list:
     query = sa.select(
         conta.c.id,
+        conta.c.cliente_id,
         conta.c.saldo,
         conta.c.agencia,
         conta.c.cadastrado_em,
@@ -113,6 +116,7 @@ async def obter_conta(conta_id: int) -> dict:
         raise exceptions.ErrorNotFound(f"Conta com ID {conta_id} não encontrada!")
     query = sa.select(
         conta.c.id,
+        conta.c.cliente_id,
         conta.c.saldo,
         conta.c.agencia,
         conta.c.cadastrado_em,
@@ -185,3 +189,9 @@ async def editar_conta(conta_id: int, conta_json):
                 if dados_base:
                     await database.execute(conta_empresarial.update().values(**dados_ce).where(conta_empresarial.c.id == conta_id))
         return
+
+
+async def listar_contas_cliente(cliente_id) -> list[int]:
+    query = sa.select(conta.c.id).where(conta.c.cliente_id == cliente_id)
+    rows = await database.fetch_all(query)
+    return [row['id'] for row in rows]

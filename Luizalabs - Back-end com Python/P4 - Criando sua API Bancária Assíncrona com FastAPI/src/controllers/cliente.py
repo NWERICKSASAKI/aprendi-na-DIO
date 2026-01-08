@@ -2,9 +2,7 @@ from fastapi import APIRouter, Depends, status
 
 from src.schemas.cliente import PessoaFisicaIn, PessoaJuridicaIn
 from src.schemas.cliente import PessoaFisicaInEdit, PessoaJuridicaInEdit
-from src.schemas.transacao import TransacaoIn
 from src.views.cliente import PessoaFisicaOut, PessoaJuridicaOut 
-from src.views.transacao import TransacaoOut
 from src.services import cliente as services
 
 from pydantic import Field

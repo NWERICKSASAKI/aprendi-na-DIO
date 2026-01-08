@@ -1,7 +1,7 @@
 import sqlalchemy as sa
 from src.database import metadata
 
-cliente = sa.Table(
+autenticacao = sa.Table(
     'autenticacao',
     metadata,
     sa.Column('id', sa.Integer, primary_key=True, autoincrement=True),

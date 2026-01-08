@@ -5,7 +5,7 @@ from typing import Literal
 class ClienteOut(BaseModel):
     id: int
     endereco: str
-    # contas_id: list[dict] | None
+    contas_id: list[int] | None
     cadastrado_em: AwareDatetime
 
 class PessoaFisicaOut(ClienteOut):

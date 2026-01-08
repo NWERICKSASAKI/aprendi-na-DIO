@@ -13,7 +13,7 @@ class ContaCorrenteOut(ContaOut):
     valor_saques: float
     limite: float
     qtd_saques: int
-    limite_saques: int
+    limite_saque: int
 
 class ContaEmpresarialOut(ContaOut):
     tipo: Literal["ce"] = "ce"

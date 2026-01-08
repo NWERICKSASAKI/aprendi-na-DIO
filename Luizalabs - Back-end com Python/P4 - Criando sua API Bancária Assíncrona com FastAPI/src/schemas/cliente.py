@@ -4,9 +4,11 @@ from datetime import date
 
 class ClienteIn(BaseModel):
     endereco: str
+    senha: str
 
 class ClienteInEdit(BaseModel):
     endereco: str | None = None
+    senha: str
 
 class PessoaFisicaIn(ClienteIn):
     tipo: Literal["pf"] = "pf"

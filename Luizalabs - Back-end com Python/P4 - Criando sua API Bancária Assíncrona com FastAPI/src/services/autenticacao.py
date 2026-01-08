@@ -2,18 +2,19 @@ import jwt
 import time
 from typing import Annotated
 from uuid import uuid4
-from fastapi import Depends, HTTPException, Request, status
+from fastapi import Depends, Request
+from src import exceptions
 from fastapi.security import HTTPBearer
 from src.views import autenticacao
 from src.config import settings
-from src.models import autenticacao as autenticacao_models
+from src.models.autenticacao import autenticacao as autenticacao_table
 from src.database import database
 
 
 async def _comparar_usuario_senha(credenciais_json) -> bool:
     input_cliente_id = credenciais_json["cliente_id"]
     input_senha = credenciais_json["senha"]
-    query = autenticacao_models.select(autenticacao_models.c.senha).where(autenticacao_models.c.cliente_id == input_cliente_id)
+    query = autenticacao_table.select(autenticacao_table.c.senha).where(autenticacao_table.c.cliente_id == input_cliente_id)
     senha_armazenada = await database.execute(query)
     if input_senha == senha_armazenada:
         return True
@@ -23,11 +24,7 @@ async def _comparar_usuario_senha(credenciais_json) -> bool:
 async def autenticar(credenciais_json) -> autenticacao.JWTToken | None:
     if await _comparar_usuario_senha(credenciais_json):
         return _gerar_token(credenciais_json["id"])
-    raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="invalid authorizarion code."
-    )
-
+    raise exceptions.Error_401_UNAUTHORIZED
 def _gerar_token(user_id: int) -> autenticacao.JWTToken:
     now = time.time()
     payload = {
@@ -70,23 +67,14 @@ class JWTBearer(HTTPBearer):
 
         if credentials:
             if not scheme == "Bearer":
-                raise HTTPException(
-                    status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="invalid authorizarion scheme."
-                )
+                raise exceptions.Error_401_UNAUTHORIZED("invalid authorizarion scheme.")
             
             payload = await _descondificar_token(credentials)
             if not payload:
-                raise HTTPException(
-                    status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="invalid or expired token."
-                )
+                raise exceptions.Error_401_UNAUTHORIZED("invalid or expired token.")
         else:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="invalid authorizarion code."
-            )
-            
+            raise exceptions.Error_401_UNAUTHORIZED("invalid authorizarion code.")
+
 
 async def get_current_user(token: Annotated[autenticacao.JWTToken, Depends(JWTBearer())]) -> dict[str, int]:
     return {"user_id": token.access_token.sub} # sub é o user id
@@ -94,5 +82,14 @@ async def get_current_user(token: Annotated[autenticacao.JWTToken, Depends(JWTBe
 
 def login_required(current_user: Annotated[dict[str, int], Depends(get_current_user)]):
     if not current_user: # caso nao tiver user_id
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
+        raise exceptions.Error_403_FORBIDDEN("access denied")
     return current_user
+
+
+async def criar_senha(cliente_id, senha) -> int:
+    query = autenticacao_table.insert().values(
+        cliente_id = cliente_id,
+        senha = senha
+    )
+    id = await database.execute(query)
+    return id

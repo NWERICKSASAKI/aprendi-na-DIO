@@ -19,6 +19,7 @@ from src.database import engine, metadata
 from src.models.cliente import cliente, pessoa_fisica
 from src.models.conta import conta, conta_corrente
 from src.models.transacao import transacao
+from src.models.autenticacao import autenticacao
 
 # add your model's MetaData object here
 # for 'autogenerate' support
