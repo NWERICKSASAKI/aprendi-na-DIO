@@ -40,7 +40,11 @@ async def _criar_conta_empresarial(conta_id, conta_json) -> int:
     id = await database.execute(query)
     return id
 
-async def criar_conta(conta_json) -> int:
+async def criar_conta(conta_json, dados_usuario_logado: dict) -> int:
+
+    if not dados_usuario_logado["is_adm"]:
+        raise exceptions.Error_401_UNAUTHORIZED("apenas ADM!")
+
     async with database.transaction():
         id = await _criar_conta_base(conta_json)
         match conta_json.tipo:
@@ -80,7 +84,11 @@ def _mapear_conta(row) -> dict:
     raise exceptions.Error_404_NOT_FOUND(f"Conta sem CC/CE associado: {dict(row)}")
 
 
-async def listar_contas() -> list:
+async def listar_contas(dados_usuario_logado) -> list:
+
+    if not dados_usuario_logado["is_adm"]:
+        raise exceptions.Error_401_UNAUTHORIZED("apenas ADM!")
+
     query = sa.select(
         conta.c.id,
         conta.c.cliente_id,
@@ -116,10 +124,11 @@ async def _retorna_cliente_id_da_conta(conta_id) -> int:
     result = await database.fetch_one(query)
     return result["cliente_id"]
 
-async def obter_conta(conta_id: int, id_cliente_logado: int) -> dict:
+async def obter_conta(conta_id: int, dados_usuario_logado: dict) -> dict:
     
     cliente_id = await _retorna_cliente_id_da_conta(conta_id)
-    if not cliente_id == id_cliente_logado:
+
+    if not dados_usuario_logado["is_adm"] and not cliente_id == dados_usuario_logado["cliente_id"]:
         raise exceptions.Error_403_FORBIDDEN("Você não pode visualizar os dados de contas de outros clientes")
     
     if not await _id_existe(conta_id):
@@ -151,10 +160,11 @@ async def obter_conta(conta_id: int, id_cliente_logado: int) -> dict:
     return _mapear_conta(row_dict)
 
 
-async def exibir_saldo(conta_id: int, id_cliente_logado) -> float:
+async def exibir_saldo(conta_id: int, dados_usuario_logado: dict) -> float:
 
     cliente_id = await _retorna_cliente_id_da_conta(conta_id)
-    if not cliente_id == id_cliente_logado:
+
+    if not dados_usuario_logado["is_adm"] and not cliente_id == dados_usuario_logado["cliente_id"]:
         raise exceptions.Error_403_FORBIDDEN("Você não pode visualizar os dados de contas de outros clientes")
 
     query = sa.select(
@@ -166,10 +176,10 @@ async def exibir_saldo(conta_id: int, id_cliente_logado) -> float:
     return row["saldo"]
 
 
-async def deletar_conta(conta_id: int, id_cliente_logado: int) -> bool:
+async def deletar_conta(conta_id: int, dados_usuario_logado: dict) -> bool:
 
     cliente_id = await _retorna_cliente_id_da_conta(conta_id)
-    if not cliente_id == id_cliente_logado:
+    if not dados_usuario_logado["is_adm"] and not cliente_id == dados_usuario_logado["cliente_id"]:
         raise exceptions.Error_403_FORBIDDEN("Você não pode visualizar os dados de contas de outros clientes")
 
     async with database.transaction():
@@ -177,10 +187,11 @@ async def deletar_conta(conta_id: int, id_cliente_logado: int) -> bool:
         return result>0
 
 
-async def editar_conta(conta_id: int, conta_json, id_cliente_logado: int):
+async def editar_conta(conta_id: int, conta_json, dados_usuario_logado: dict):
 
     cliente_id = await _retorna_cliente_id_da_conta(conta_id)
-    if not cliente_id == id_cliente_logado:
+    
+    if not dados_usuario_logado["is_adm"] and not cliente_id == dados_usuario_logado["cliente_id"]:
         raise exceptions.Error_403_FORBIDDEN("Você não pode visualizar os dados de contas de outros clientes")
 
 

@@ -21,15 +21,19 @@ def _mapear_transacao(row):
         "cadastrado_em": row["cadastrado_em"].replace(tzinfo=timezone.utc)
     }
 
-async def listar_transacoes() -> list:
+async def listar_transacoes(dados_usuario_logado) -> list:
+
+    if not dados_usuario_logado["is_adm"]:
+        raise exceptions.Error_401_UNAUTHORIZED("apenas ADM!")
+
     rows = await database.fetch_all(transacao.select())
     return [_mapear_transacao(row) for row in rows]
 
 
-async def visualizar_transacao(transacao_id: int, id_cliente_logado: int) -> dict:
+async def visualizar_transacao(transacao_id: int, dados_usuario_logado: dict) -> dict:
 
     cliente_id = await _cliente_id_da_transacao(transacao_id)
-    if not cliente_id == id_cliente_logado:
+    if not dados_usuario_logado["is_adm"] and not cliente_id == dados_usuario_logado["cliente_id"]:
         raise exceptions.Error_403_FORBIDDEN("Você não pode visualizar transações de outros clientes!") 
 
     row = await database.fetch_one(transacao.select().where(transacao.c.id == transacao_id))
@@ -38,9 +42,9 @@ async def visualizar_transacao(transacao_id: int, id_cliente_logado: int) -> dic
     return _mapear_transacao(row)
 
 
-async def visualizar_extrato_cliente(cliente_id: int, id_cliente_logado: int) -> list:
+async def visualizar_extrato_cliente(cliente_id: int, dados_usuario_logado: dict) -> list:
 
-    if not cliente_id == id_cliente_logado:
+    if not dados_usuario_logado["is_adm"] and not cliente_id == dados_usuario_logado["cliente_id"]:
         raise exceptions.Error_403_FORBIDDEN("Você não pode visualizar transações de outros clientes!") 
 
     rows = await database.fetch_all(transacao.select().where(transacao.c.conta_id == cliente_id))
@@ -106,10 +110,10 @@ async def _alterar_saldo(transacao_json, tipo:str, conta_json):
     return
 
 
-async def realizar_transacao(transacao_json, tipo_transacao:str, id_cliente_logado):
+async def realizar_transacao(transacao_json, tipo_transacao:str, dados_usuario_logado: dict):
 
     cliente_id = transacao_json.cliente_id
-    if not cliente_id == id_cliente_logado:
+    if not dados_usuario_logado["is_adm"] and not cliente_id == dados_usuario_logado["cliente_id"]:
         raise exceptions.Error_403_FORBIDDEN("Você não pode visualizar transações de outros clientes!") 
 
     async with database.transaction():

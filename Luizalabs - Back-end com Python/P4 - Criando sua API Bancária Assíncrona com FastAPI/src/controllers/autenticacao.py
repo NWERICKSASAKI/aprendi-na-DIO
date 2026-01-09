@@ -13,5 +13,5 @@ async def autenticar(credenciais: AutenticacaoIn):
     return await autenticacao.autenticar(credenciais)
 
 @router.patch("/")
-async def alterar_senha(credenciais: AutenticacaoIn, id_cliente_logado: Annotated[int, Depends(autenticacao.login_required)]):
-    return await autenticacao.alterar_senha(credenciais, id_cliente_logado)
+async def alterar_senha(credenciais: AutenticacaoIn, dados_usuario_logado: Annotated[dict, Depends(autenticacao.login_required)]):
+    return await autenticacao.alterar_senha(credenciais, dados_usuario_logado)

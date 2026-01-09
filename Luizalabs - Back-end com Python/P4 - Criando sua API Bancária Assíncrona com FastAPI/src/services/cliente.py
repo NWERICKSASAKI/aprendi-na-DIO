@@ -41,7 +41,11 @@ async def _criar_cliente_pj(id, cliente_json) -> int:
         id = await database.execute(query)
         return id
 
-async def criar_cliente(cliente_json) -> int:
+async def criar_cliente(cliente_json, dados_usuario_logado) -> int:
+
+    if not dados_usuario_logado["is_adm"]:
+        raise exceptions.Error_401_UNAUTHORIZED("Apenas ADM!")
+
     async with database.transaction(): # commit automático e rollback em caso de erro
         id = await _criar_cliente_base(cliente_json)
         await autenticacao.criar_senha(id, cliente_json.senha)
@@ -80,7 +84,11 @@ def _mapear_cliente(row) -> dict:
     raise exceptions.Error_404_NOT_FOUND("Cliente sem PF/PJ associado")
 
 
-async def listar_clientes() -> list:
+async def listar_clientes(dados_usuario_logado) -> list:
+
+    if not dados_usuario_logado["is_adm"]:
+        raise exceptions.Error_401_UNAUTHORIZED("Apenas ADM!")
+
     query = sa.select(
         cliente.c.id,
         cliente.c.endereco,
@@ -108,10 +116,10 @@ async def listar_clientes() -> list:
     return lista
 
 
-async def obter_cliente(cliente_id: int, id_cliente_logado: int):
+async def obter_cliente(cliente_id: int, dados_usuario_logado: dict):
 
-    if not cliente_id == id_cliente_logado:
-        raise exceptions.Error_403_FORBIDDEN("Você não pode atualizar dados de outros clientes!")
+    if not dados_usuario_logado["is_adm"] and not cliente_id == dados_usuario_logado["cliente_id"]:
+        raise exceptions.Error_403_FORBIDDEN("Você não pode visualizar dados de outros clientes!")
 
     query = sa.select(
         cliente.c.id.label("id"),
@@ -139,9 +147,9 @@ async def obter_cliente(cliente_id: int, id_cliente_logado: int):
     return _mapear_cliente(dict_row)
 
 
-async def deletar_cliente(cliente_id: int, id_cliente_logado: int) -> bool:
+async def deletar_cliente(cliente_id: int, dados_usuario_logado: dict) -> bool:
 
-    if not cliente_id == id_cliente_logado:
+    if not dados_usuario_logado["is_adm"] and not cliente_id == dados_usuario_logado["cliente_id"]:
         raise exceptions.Error_403_FORBIDDEN("Você não pode apagar outro cliente!")
     
     async with database.transaction():
@@ -149,9 +157,9 @@ async def deletar_cliente(cliente_id: int, id_cliente_logado: int) -> bool:
         return result>0 # se apagou alguma linha
 
 
-async def atualizar_cliente(cliente_id: int, cliente_json, id_cliente_logado: int):
+async def atualizar_cliente(cliente_id: int, cliente_json, dados_usuario_logado: dict):
 
-    if not cliente_id == id_cliente_logado:
+    if not dados_usuario_logado["is_adm"] and not cliente_id == dados_usuario_logado["cliente_id"]:
         raise exceptions.Error_403_FORBIDDEN("Você não pode atualizar dados de outros clientes!")
 
     if not await _id_existe(cliente_id):

@@ -19,26 +19,26 @@ ClienteOut = Annotated[
 router = APIRouter(prefix="/clientes", tags=["Clientes"])
 
 @router.get("/", response_model=list[ClienteOut])
-async def listar_clientes():
-    return await services.listar_clientes()
+async def listar_clientes(dados_usuario_logado: Annotated[dict, Depends(login_required)]):
+    return await services.listar_clientes(dados_usuario_logado)
 
 @router.get("/{cliente_id}", response_model=ClienteOut)
-async def obter_cliente(cliente_id: int, id_cliente_logado: Annotated[int, Depends(login_required)]):
-    cliente = await services.obter_cliente(cliente_id, id_cliente_logado)
+async def obter_cliente(cliente_id: int, dados_usuario_logado: Annotated[dict, Depends(login_required)]):
+    cliente = await services.obter_cliente(cliente_id, dados_usuario_logado)
     return cliente
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
-async def criar_cliente(cliente_json: ClienteIn):
-    cliente_id = await services.criar_cliente(cliente_json)
+async def criar_cliente(cliente_json: ClienteIn, dados_usuario_logado: Annotated[dict, Depends(login_required)]):
+    cliente_id = await services.criar_cliente(cliente_json, dados_usuario_logado)
     return f"Cliente id {cliente_id} criado com sucesso!"
 
 @router.patch("/{cliente_id}", status_code=status.HTTP_202_ACCEPTED)
-async def atualizar_cliente(cliente_id: int, cliente: ClienteInEdit, id_cliente_logado: Annotated[int, Depends(login_required)]):
-    await services.atualizar_cliente(cliente_id, cliente, id_cliente_logado)
+async def atualizar_cliente(cliente_id: int, cliente: ClienteInEdit, dados_usuario_logado: Annotated[dict, Depends(login_required)]):
+    await services.atualizar_cliente(cliente_id, cliente, dados_usuario_logado)
     return f"Cliente id {cliente_id} editado com sucesso!"
 
 @router.delete("/{cliente_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def deletar_cliente(cliente_id: int, id_cliente_logado: Annotated[int, Depends(login_required)]):
-    await services.deletar_cliente(cliente_id, id_cliente_logado)
+async def deletar_cliente(cliente_id: int, dados_usuario_logado: Annotated[dict, Depends(login_required)]):
+    await services.deletar_cliente(cliente_id, dados_usuario_logado)
     return
 

@@ -1391,8 +1391,107 @@ async def alterar_senha(credenciais_json, id_cliente_logado: Annotated[int, Depe
     raise exceptions.Error_403_FORBIDDEN("Você não pode alterar senha de outros usuários!")
 ```
 
-#### Chamadas nas APIs
+#### 5.5 Autenticação por ID de cliente
 
 Por fim, todas as chamadas na API das quais requerem autenticação será necessário acrescentar `, id_cliente_logado: Annotated[int, Depends(login_required)]` na função async como argumento, como mostrado anteriormente ali no PATCH da senha. + `from src.services.autenticacao import login_required`.
 
+e com base no `id_cliente_logado` é comparado com o id do cliente da rota ou do corpo do JSON (cliente, transacao, etc.) para conceder acesso.
 
+Exemplo em `src/controllers/cliente.py`:
+
+```py
+from src.services.autenticacao import login_required
+# ...
+@router.get("/{cliente_id}", response_model=ClienteOut)
+async def obter_cliente(cliente_id: int, id_cliente_logado: Annotated[int, Depends(login_required)]):
+    cliente = await services.obter_cliente(cliente_id, id_cliente_logado)
+    return cliente
+```
+
+e em `src/services/cliente.py`:
+
+```py
+# ...
+async def obter_cliente(cliente_id: int, id_cliente_logado: int):
+
+    if not cliente_id == id_cliente_logado:
+        raise exceptions.Error_403_FORBIDDEN("Você não pode atualizar dados de outros clientes!")
+
+    query = # ...
+```
+
+#### 5.6 Usuário Administrador
+
+Para as requisições de "GET ALL" ou para todas as outras que precisam de autenticação do usuário vou deixar um usuário "administrador" para esse fim.
+
+Precisei alterar o `src/views/autenticacao.py`:
+
+```py
+class AccessToken(BaseModel):
+    iss: str
+    sub: int
+    adm: bool # <-- acrescentado
+    aud: str
+    exp: float
+    iat: float
+    nbf: float
+    jti: str
+```
+
+Alteração no `src/services/autenticacao.py`:
+
+```py
+async def autenticar(credenciais_json) -> autenticacao.AutenticacaoOut | None:
+    if await _comparar_usuario_senha(credenciais_json):
+        return _gerar_token(credenciais_json.cliente_id, credenciais_json.adm)  # <-- alterado
+    raise exceptions.Error_401_UNAUTHORIZED("Senha inválida")
+
+
+def _gerar_token(user_id: int, adm: bool) -> autenticacao.AutenticacaoOut:  # <-- alterado
+    now = time.time()
+    payload = {
+        "iss": "aprendi_na_dio",
+        "sub": str(user_id),
+        "adm": adm, # <-- acrescentado
+        "aud": "projeto_sistema_bancario",
+        "exp": now + (60 * 30),
+        "iat": now,
+        "nbf": now,
+        "jti": uuid4().hex,
+    }
+
+# ...
+
+# alterado o formato de retorno
+async def _get_current_user(token: Annotated[autenticacao.AutenticacaoOut, Depends(JWTBearer())]) -> int:
+    return {
+        "cliente_id" : token.hash_access_token.sub, # sub é o user id
+        "is_adm" : token.hash_access_token.adm # sub é o user id
+    }
+
+
+# alterado o formato de entrada e validação
+def login_required(dados_usuario_logado: Annotated[dict, Depends(_get_current_user)]) -> int:
+    if not dados_usuario_logado["cliente_id"]: # caso nao tiver user_id
+        raise exceptions.Error_403_FORBIDDEN("access denied")
+    return dados_usuario_logado
+```
+
+Em `src/controllers/autenticacao.py` foi alterado:
+
+```py
+@router.patch("/")
+async def alterar_senha(credenciais: AutenticacaoIn, dados_usuario_logado: Annotated[dict, Depends(autenticacao.login_required)]):
+    return await autenticacao.alterar_senha(credenciais, dados_usuario_logado)
+```
+
+e por fim a função respectiva em `src/services/autenticacao.py` também foi alterado:
+
+```py
+async def alterar_senha(credenciais_json, dados_usuario_logado: Annotated[dict, Depends(autenticacao.login_required)]):
+    if not dados_usuario_logado["is_adm"] or not dados_usuario_logado["cliente_id"] == credenciais_json.cliente_id:
+        raise exceptions.Error_403_FORBIDDEN("Você não pode alterar senha de outros usuários!")
+    query = autenticacao_table.update().values(credenciais_json.model_dump()).where(autenticacao_table.c.id == credenciais_json.cliente_id)
+    result = await database.execute(query)
+    return f"Senha alterada com sucesso!"
+```
