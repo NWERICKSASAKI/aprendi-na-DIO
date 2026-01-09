@@ -5,6 +5,7 @@ from src.schemas.conta import ContaCorrenteInEdit, ContaEmpresarialInEdit
 from src.views.conta import ContaCorrenteOut, ContaEmpresarialOut
 from src.views.transacao import TransacaoOut
 from src.services import conta as services
+from src.services.autenticacao import login_required
 
 from pydantic import Field
 from typing import Union, Annotated
@@ -23,12 +24,12 @@ async def listar_contas():
     return await services.listar_contas()
 
 @router.get("/{conta_id}", response_model=ContaOut)
-async def obter_conta(conta_id: int):
-    return await services.obter_conta(conta_id)
+async def obter_conta(conta_id: int, id_cliente_logado: Annotated[int, Depends(login_required)]):
+    return await services.obter_conta(conta_id, id_cliente_logado)
 
 @router.get("/{conta_id}/saldo/", response_model=float)
-async def exibir_saldo(conta_id: int):
-    return await services.exibir_saldo(conta_id)
+async def exibir_saldo(conta_id: int, id_cliente_logado: Annotated[int, Depends(login_required)]):
+    return await services.exibir_saldo(conta_id, id_cliente_logado)
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
 async def criar_conta(conta:ContaIn):
@@ -36,11 +37,11 @@ async def criar_conta(conta:ContaIn):
     return f"Criado conta ID {conta_id} com sucesso!"
 
 @router.patch("/{conta_id}", status_code=status.HTTP_202_ACCEPTED)
-async def editar_conta(conta_id:int, conta:ContaInEdit):
-    await services.editar_conta(conta_id, conta)
+async def editar_conta(conta_id:int, conta:ContaInEdit, id_cliente_logado: Annotated[int, Depends(login_required)]):
+    await services.editar_conta(conta_id, conta, id_cliente_logado)
     return f"Conta ID {conta_id} editada com sucesso!"
 
 @router.delete("/{conta_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def deletar_conta(conta_id: int):
-    await services.deletar_conta(conta_id)
+async def deletar_conta(conta_id: int, id_cliente_logado: Annotated[int, Depends(login_required)]):
+    await services.deletar_conta(conta_id, id_cliente_logado)
     return

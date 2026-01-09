@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 
 class AutenticacaoOut(BaseModel):
-    access_token: str
+    hash_access_token: str
 
 class AccessToken(BaseModel):
     iss: str
@@ -11,6 +11,3 @@ class AccessToken(BaseModel):
     iat: float
     nbf: float
     jti: str
-
-class JWTToken(BaseModel):
-    access_token: AccessToken

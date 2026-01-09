@@ -1093,4 +1093,306 @@ async def qtd_valor_saques(conta_id) -> tuple[int, float]:
     return (qtd_saques_hoje, valor_saques_hoje)
 ```
 
-### 4 
+### 4 Exceções
+
+Aqui vamos configurar e personalizar os erros, que por padrão sempre retorna erro 500.
+
+#### 4.1 src/exceptions.py
+
+Foi desenvolvido o arquivo `src/exceptions.py` para criar classes personalizadas para os princípais erros mapeados:
+
+```py
+from http import HTTPStatus
+
+class Error_401_UNAUTHORIZED(Exception):
+    def __init__(self, message: str = "Unauthorized", status_code: int = HTTPStatus.UNAUTHORIZED) -> None:
+        self.message = message
+        self.status_code = status_code
+
+class Error_403_FORBIDDEN(Exception):
+    def __init__(self, message: str = "Forbidden", status_code: int = HTTPStatus.FORBIDDEN) -> None:
+        self.message = message
+        self.status_code = status_code
+
+class Error_404_NOT_FOUND(Exception):
+    def __init__(self, message: str = "Not found", status_code: int = HTTPStatus.NOT_FOUND) -> None:
+        self.message = message
+        self.status_code = status_code
+
+class Error_406_NOT_ACCEPTABLE(Exception):
+    def __init__(self, message: str = "Not Acceptable", status_code: int = HTTPStatus.NOT_ACCEPTABLE) -> None:
+        self.message = message
+        self.status_code = status_code
+```
+
+#### 4.2 src/main.py
+
+No arquivo principal vamos acrescentar o decorator `@asynccontextmanager` para quando qualquer um dos `raise` personalizados for chamado, retornar o código HTTP de erro junto com um JSON informativo do erro.
+
+```py
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
+
+from src.database import database
+from src.controllers import cliente
+from src.controllers import conta
+from src.controllers import autenticacao
+from src.controllers import transacao
+from src import exceptions
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await database.connect()
+    yield
+    await database.disconnect()
+
+# TODO adicionar middlewares e configurações do APP
+app = FastAPI(
+    lifespan=lifespan
+)
+
+
+app.include_router(autenticacao.router)
+app.include_router(cliente.router)
+app.include_router(conta.router)
+app.include_router(transacao.router)
+
+
+@app.exception_handler(exceptions.Error_401_UNAUTHORIZED)
+async def unathorized(request: Request, exc: exceptions.Error_401_UNAUTHORIZED):
+    return JSONResponse(
+        status_code = exc.status_code,
+        content={"detail": exc.message}
+    )
+
+@app.exception_handler(exceptions.Error_401_UNAUTHORIZED)
+async def unathorized(request: Request, exc: exceptions.Error_401_UNAUTHORIZED):
+    return JSONResponse(
+        status_code = exc.status_code,
+        content={"detail": exc.message}
+    )
+
+@app.exception_handler(exceptions.Error_403_FORBIDDEN)
+async def unathorized(request: Request, exc: exceptions.Error_403_FORBIDDEN):
+    return JSONResponse(
+        status_code = exc.status_code,
+        content={"detail": exc.message}
+    )
+
+@app.exception_handler(exceptions.Error_404_NOT_FOUND)
+async def unathorized(request: Request, exc: exceptions.Error_404_NOT_FOUND):
+    return JSONResponse(
+        status_code = exc.status_code,
+        content={"detail": exc.message}
+    )
+```
+
+#### 4.3 src/services
+
+Para exemplificar onde essas classes devem ser usadas, aqui abaixo tem um trecho do arquivo `src/services/transacao.py`:
+
+```py
+from src import exceptions
+
+# [...]
+
+async def realizar_transacao(transacao_json, tipo_transacao:str):
+    async with database.transaction():
+        conta_id: int = transacao_json.conta_id
+        if not await conta_services._id_existe(conta_id):
+            raise exceptions.Error_404_NOT_FOUND(f"Conta de ID {conta_id} não encontrada!")
+        
+        conta_json: dict = await conta_services.obter_conta(conta_id)
+        sucesso: bool = True
+        if tipo_transacao == 's': # saque
+            sucesso, motivo_erro = await _transacao_autorizada(transacao_json, tipo_transacao, conta_json)
+        transacao_id: int = await _cadastrar_transacao(transacao_json, tipo_transacao=tipo_transacao, sucesso=sucesso)
+        if not sucesso:
+            raise exceptions.Error_403_FORBIDDEN(motivo_erro)
+
+        await _alterar_saldo(transacao_json, tipo=tipo_transacao, conta_json=conta_json)
+        return transacao_id
+```
+
+### 5 Segurança e Autenticação
+
+Com o intuito de proteger, ou seja, que somente usuários autenticados podem realizar transações em suas próprias contas, vamos implementar uma tabela para armazenar as senhas dos clientes, assim como criar uma chamada para a API verificar os usuários e senhas para autenticar via JWT.
+
+#### 5.1 src/models/autenticacao.py
+
+A tabela ficará conforme modelo abaixo:
+
+```py
+import sqlalchemy as sa
+from src.database import metadata
+
+autenticacao = sa.Table(
+    'autenticacao',
+    metadata,
+    sa.Column('id', sa.Integer, primary_key=True, autoincrement=True),
+    sa.Column('cliente_id', sa.Integer, sa.ForeignKey('cliente.id', ondelete='CASCADE')),
+    sa.Column('senha', sa.String)
+    )
+```
+
+Lembrete de atualizar o banco com esta nova tabela via `alembic`.
+
+Outro detalhe, alterei o `POST` de `cliente` para acrescentar o recebimento via JSON a sua respectiva senha.
+
+#### 5.2 src/schemas/autenticacao.py
+
+Para fazer a autenticação na API o usuário precisará enviar um JSON no seguinte formato:
+
+```py
+from pydantic import BaseModel
+
+class AutenticacaoIn(BaseModel):
+    cliente_id: int
+    senha: str
+```
+
+#### 5.3 src/controllers/autenticacao.py
+
+As rotas da API para a autenticação ficaram assim:
+
+```py
+from fastapi import APIRouter, Depends
+
+from src.schemas.autenticacao import AutenticacaoIn
+from src.services import autenticacao
+from src.views.autenticacao import AutenticacaoOut
+
+from typing import Annotated
+
+router = APIRouter(prefix="/login", tags=["Autenticação"])
+
+@router.post("/", response_model=AutenticacaoOut)
+async def autenticar(credenciais: AutenticacaoIn):
+    return await autenticacao.autenticar(credenciais)
+
+@router.patch("/")
+async def alterar_senha(credenciais: AutenticacaoIn, id_cliente_logado: Annotated[int, Depends(autenticacao.login_required)]):
+    return await autenticacao.alterar_senha(credenciais, id_cliente_logado)
+```
+
+Note que, para se usar o `PATCH` é necessário estar autenticado.
+
+#### 5.4 src/services/autenticacao.py
+
+Por fim o arquivo services ficou assim:
+
+```py
+import jwt
+import time
+from typing import Annotated
+from uuid import uuid4
+from fastapi import Depends, Request
+from fastapi.security import HTTPBearer
+import sqlalchemy as sa
+
+from src import exceptions
+from src.config import settings
+from src.database import database
+from src.views import autenticacao
+from src.models.autenticacao import autenticacao as autenticacao_table
+
+
+async def _comparar_usuario_senha(credenciais_json) -> bool:
+    input_cliente_id = credenciais_json.cliente_id
+    input_senha = credenciais_json.senha
+    query = sa.select(autenticacao_table.c.senha).where(autenticacao_table.c.cliente_id == input_cliente_id)
+    senha_armazenada = await database.fetch_one(query)
+    if input_senha == senha_armazenada['senha']:
+        return True
+    return False
+
+
+async def autenticar(credenciais_json) -> autenticacao.AutenticacaoOut | None:
+    if await _comparar_usuario_senha(credenciais_json):
+        return _gerar_token(credenciais_json.cliente_id)
+    raise exceptions.Error_401_UNAUTHORIZED("Senha inválida")
+
+
+def _gerar_token(user_id: int) -> autenticacao.AutenticacaoOut:
+    now = time.time()
+    payload = {
+        "iss": "aprendi_na_dio",
+        "sub": str(user_id),
+        "aud": "projeto_sistema_bancario",
+        "exp": now + (60 * 30),
+        "iat": now,
+        "nbf": now,
+        "jti": uuid4().hex,
+    }
+    token = jwt.encode(payload, settings.secret, algorithm=settings.algorithm)
+    return {"hash_access_token": token}
+
+
+async def _descondificar_token(token: str) -> autenticacao.AutenticacaoOut | None:
+    try:
+        decoded_token = jwt.decode(
+            token,
+            settings.secret,
+            [settings.algorithm],
+            audience="projeto_sistema_bancario",
+        )
+        _token = autenticacao.AutenticacaoOut.model_validate({"access_token": decoded_token})
+        return _token if _token.hash_access_token.exp >= time.time() else None
+    except:
+        return None
+
+class JWTBearer(HTTPBearer):
+    def __init__(self, auto_error:bool = True):
+        super(JWTBearer, self).__init__(auto_error=auto_error)
+
+    async def __call__(self, request: Request) -> autenticacao.AutenticacaoOut:
+        authorization = request.headers.get("Authorization", "")
+        scheme, _, credentials = authorization.partition(" ")
+
+        if credentials:
+            if not scheme == "Bearer":
+                raise exceptions.Error_401_UNAUTHORIZED("invalid authorizarion scheme.")
+            
+            payload = await _descondificar_token(credentials)
+            if not payload:
+                raise exceptions.Error_401_UNAUTHORIZED(f"invalid or expired token: {payload}")
+            return payload
+        else:
+            raise exceptions.Error_401_UNAUTHORIZED("invalid authorizarion code.")
+
+
+async def get_current_user(token: Annotated[autenticacao.AutenticacaoOut, Depends(JWTBearer())]) -> int:
+    cliente_id = token.hash_access_token.sub # sub é o user id
+    return cliente_id
+
+
+def login_required(current_user: Annotated[int, Depends(get_current_user)]) -> int:
+    if not current_user: # caso nao tiver user_id
+        raise exceptions.Error_403_FORBIDDEN("access denied")
+    return current_user
+
+
+async def criar_senha(cliente_id, senha) -> int:
+    query = autenticacao_table.insert().values(
+        cliente_id = cliente_id,
+        senha = senha
+    )
+    id = await database.execute(query)
+    return id
+
+
+async def alterar_senha(credenciais_json, id_cliente_logado: Annotated[int, Depends(autenticacao.login_required)]):
+    if id_cliente_logado == credenciais_json.cliente_id:
+        query = autenticacao_table.update().values(credenciais_json.model_dump()).where(autenticacao_table.c.id == credenciais_json.cliente_id)
+        result = await database.execute(query)
+        return f"Senha alterada com sucesso!"
+    raise exceptions.Error_403_FORBIDDEN("Você não pode alterar senha de outros usuários!")
+```
+
+#### Chamadas nas APIs
+
+Por fim, todas as chamadas na API das quais requerem autenticação será necessário acrescentar `, id_cliente_logado: Annotated[int, Depends(login_required)]` na função async como argumento, como mostrado anteriormente ali no PATCH da senha. + `from src.services.autenticacao import login_required`.
+
+

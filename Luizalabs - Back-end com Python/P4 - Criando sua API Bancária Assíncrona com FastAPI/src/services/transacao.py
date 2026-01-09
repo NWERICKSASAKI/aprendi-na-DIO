@@ -1,10 +1,15 @@
 import sqlalchemy as sa
 from src.database import database
-from src.models.conta import conta, conta_corrente, conta_empresarial
+from src.models.conta import conta
 from src.models.transacao import transacao
 from src.services import conta as conta_services
 from datetime import datetime, timezone, time, date
 from src import exceptions
+
+async def _cliente_id_da_transacao(transacao_id) -> int:
+    query = transacao.select(transacao.c.cliente_id).where(transacao.c.id == transacao_id)
+    resultado = await database.fetch_one(query)
+    return resultado["cliente_id"]
 
 def _mapear_transacao(row):
     return {
@@ -21,14 +26,23 @@ async def listar_transacoes() -> list:
     return [_mapear_transacao(row) for row in rows]
 
 
-async def visualizar_transacao(transacao_id: int) -> dict:
+async def visualizar_transacao(transacao_id: int, id_cliente_logado: int) -> dict:
+
+    cliente_id = await _cliente_id_da_transacao(transacao_id)
+    if not cliente_id == id_cliente_logado:
+        raise exceptions.Error_403_FORBIDDEN("Você não pode visualizar transações de outros clientes!") 
+
     row = await database.fetch_one(transacao.select().where(transacao.c.id == transacao_id))
     if not row:
         raise exceptions.Error_404_NOT_FOUND()
     return _mapear_transacao(row)
 
 
-async def visualizar_extrato_cliente(cliente_id: int) -> list:
+async def visualizar_extrato_cliente(cliente_id: int, id_cliente_logado: int) -> list:
+
+    if not cliente_id == id_cliente_logado:
+        raise exceptions.Error_403_FORBIDDEN("Você não pode visualizar transações de outros clientes!") 
+
     rows = await database.fetch_all(transacao.select().where(transacao.c.conta_id == cliente_id))
     return [_mapear_transacao(row) for row in rows]
 
@@ -92,7 +106,12 @@ async def _alterar_saldo(transacao_json, tipo:str, conta_json):
     return
 
 
-async def realizar_transacao(transacao_json, tipo_transacao:str):
+async def realizar_transacao(transacao_json, tipo_transacao:str, id_cliente_logado):
+
+    cliente_id = transacao_json.cliente_id
+    if not cliente_id == id_cliente_logado:
+        raise exceptions.Error_403_FORBIDDEN("Você não pode visualizar transações de outros clientes!") 
+
     async with database.transaction():
         conta_id: int = transacao_json.conta_id
         if not await conta_services._id_existe(conta_id):

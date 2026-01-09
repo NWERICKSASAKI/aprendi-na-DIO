@@ -77,7 +77,7 @@ def _mapear_conta(row) -> dict:
             "emprestimo": row["emprestimo"],
             "emprestimo_limite": row["emprestimo_limite"]
         }
-    raise exceptions.ErrorNotFound(f"Conta sem CC/CE associado: {dict(row)}")
+    raise exceptions.Error_404_NOT_FOUND(f"Conta sem CC/CE associado: {dict(row)}")
 
 
 async def listar_contas() -> list:
@@ -111,9 +111,20 @@ async def listar_contas() -> list:
     return lista
 
 
-async def obter_conta(conta_id: int) -> dict:
+async def _retorna_cliente_id_da_conta(conta_id) -> int:
+    query = conta.select(conta.c.cliente_id).where(conta.c.id == conta_id)
+    result = await database.fetch_one(query)
+    return result["cliente_id"]
+
+async def obter_conta(conta_id: int, id_cliente_logado: int) -> dict:
+    
+    cliente_id = await _retorna_cliente_id_da_conta(conta_id)
+    if not cliente_id == id_cliente_logado:
+        raise exceptions.Error_403_FORBIDDEN("Você não pode visualizar os dados de contas de outros clientes")
+    
     if not await _id_existe(conta_id):
-        raise exceptions.ErrorNotFound(f"Conta com ID {conta_id} não encontrada!")
+        raise exceptions.Error_404_NOT_FOUND(f"Conta com ID {conta_id} não encontrada!")
+    
     query = sa.select(
         conta.c.id,
         conta.c.cliente_id,
@@ -140,27 +151,41 @@ async def obter_conta(conta_id: int) -> dict:
     return _mapear_conta(row_dict)
 
 
-async def exibir_saldo(conta_id: int) -> float:
+async def exibir_saldo(conta_id: int, id_cliente_logado) -> float:
+
+    cliente_id = await _retorna_cliente_id_da_conta(conta_id)
+    if not cliente_id == id_cliente_logado:
+        raise exceptions.Error_403_FORBIDDEN("Você não pode visualizar os dados de contas de outros clientes")
+
     query = sa.select(
         conta.c.saldo
     ).where(conta.c.id == conta_id)
     row = await database.fetch_one(query)
     if not row:
-        raise exceptions.ErrorNotFound(f"Conta com ID {conta_id} não encontrada!")
+        raise exceptions.Error_404_NOT_FOUND(f"Conta com ID {conta_id} não encontrada!")
     return row["saldo"]
 
 
-async def deletar_conta(conta_id: int) -> bool:
+async def deletar_conta(conta_id: int, id_cliente_logado: int) -> bool:
+
+    cliente_id = await _retorna_cliente_id_da_conta(conta_id)
+    if not cliente_id == id_cliente_logado:
+        raise exceptions.Error_403_FORBIDDEN("Você não pode visualizar os dados de contas de outros clientes")
+
     async with database.transaction():
-        # await database.execute(conta_corrente.delete().where(conta_corrente.c.conta_id == conta_id))
-        # await database.execute(conta_empresarial.delete().where(conta_empresarial.c.conta_id == conta_id))
         result = await database.execute(conta.delete().where(conta.c.id == conta_id))
         return result>0
 
 
-async def editar_conta(conta_id: int, conta_json):
+async def editar_conta(conta_id: int, conta_json, id_cliente_logado: int):
+
+    cliente_id = await _retorna_cliente_id_da_conta(conta_id)
+    if not cliente_id == id_cliente_logado:
+        raise exceptions.Error_403_FORBIDDEN("Você não pode visualizar os dados de contas de outros clientes")
+
+
     if not await _id_existe(conta_id):
-        raise exceptions.ErrorNotFound(f"Conta com ID {conta_id} não encontrada!")
+        raise exceptions.Error_404_NOT_FOUND(f"Conta com ID {conta_id} não encontrada!")
     async with database.transaction():
         dicio_dados = conta_json.model_dump(exclude_unset=True)
         tipo = dicio_dados.pop("tipo")

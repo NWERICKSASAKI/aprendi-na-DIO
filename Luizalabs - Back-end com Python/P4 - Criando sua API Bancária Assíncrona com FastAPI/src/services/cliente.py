@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from src import exceptions
 from src.services import autenticacao
 
+
 async def _id_existe(id) -> bool:
     query = sa.select(cliente.c.id).where(cliente.c.id == id)
     resultado = await database.fetch_one(query)
@@ -76,7 +77,7 @@ def _mapear_cliente(row) -> dict:
             "cnpj": row["cnpj"],
             "razao_social": row["razao_social"]
         }
-    raise ValueError("Cliente sem PF/PJ associado")
+    raise exceptions.Error_404_NOT_FOUND("Cliente sem PF/PJ associado")
 
 
 async def listar_clientes() -> list:
@@ -107,7 +108,11 @@ async def listar_clientes() -> list:
     return lista
 
 
-async def obter_cliente(cliente_id):
+async def obter_cliente(cliente_id: int, id_cliente_logado: int):
+
+    if not cliente_id == id_cliente_logado:
+        raise exceptions.Error_403_FORBIDDEN("Você não pode atualizar dados de outros clientes!")
+
     query = sa.select(
         cliente.c.id.label("id"),
         cliente.c.endereco,
@@ -128,21 +133,27 @@ async def obter_cliente(cliente_id):
     ).where(cliente.c.id == cliente_id)
     row = await database.fetch_one(query)
     if not row:
-        raise exceptions.Error_404_NOT_FOUND
+        raise exceptions.Error_404_NOT_FOUND()
     dict_row = dict(row)
     dict_row["contas_id"] = await conta.listar_contas_cliente(cliente_id)
     return _mapear_cliente(dict_row)
 
 
-async def deletar_cliente(cliente_id: int) -> bool:
+async def deletar_cliente(cliente_id: int, id_cliente_logado: int) -> bool:
+
+    if not cliente_id == id_cliente_logado:
+        raise exceptions.Error_403_FORBIDDEN("Você não pode apagar outro cliente!")
+    
     async with database.transaction():
-        # await database.execute(pessoa_fisica.delete().where(pessoa_fisica.c.cliente_id == cliente_id))
-        # await database.execute(pessoa_juridica.delete().where(pessoa_juridica.c.cliente_id == cliente_id))
         result = await database.execute(cliente.delete().where(cliente.c.id == cliente_id))
         return result>0 # se apagou alguma linha
 
 
-async def atualizar_cliente(cliente_id: int, cliente_json):
+async def atualizar_cliente(cliente_id: int, cliente_json, id_cliente_logado: int):
+
+    if not cliente_id == id_cliente_logado:
+        raise exceptions.Error_403_FORBIDDEN("Você não pode atualizar dados de outros clientes!")
+
     if not await _id_existe(cliente_id):
         raise exceptions.Error_404_NOT_FOUND()
     

@@ -22,13 +22,13 @@ async def _comparar_usuario_senha(credenciais_json) -> bool:
     return False
 
 
-async def autenticar(credenciais_json) -> autenticacao.JWTToken | None:
+async def autenticar(credenciais_json) -> autenticacao.AutenticacaoOut | None:
     if await _comparar_usuario_senha(credenciais_json):
         return _gerar_token(credenciais_json.cliente_id)
     raise exceptions.Error_401_UNAUTHORIZED("Senha inválida")
 
 
-def _gerar_token(user_id: int) -> autenticacao.JWTToken:
+def _gerar_token(user_id: int) -> autenticacao.AutenticacaoOut:
     now = time.time()
     payload = {
         "iss": "aprendi_na_dio",
@@ -40,10 +40,10 @@ def _gerar_token(user_id: int) -> autenticacao.JWTToken:
         "jti": uuid4().hex,
     }
     token = jwt.encode(payload, settings.secret, algorithm=settings.algorithm)
-    return {"access_token": token}
+    return {"hash_access_token": token}
 
 
-async def _descondificar_token(token: str) -> autenticacao.JWTToken | None:
+async def _descondificar_token(token: str) -> autenticacao.AutenticacaoOut | None:
     try:
         decoded_token = jwt.decode(
             token,
@@ -51,8 +51,8 @@ async def _descondificar_token(token: str) -> autenticacao.JWTToken | None:
             [settings.algorithm],
             audience="projeto_sistema_bancario",
         )
-        _token = autenticacao.JWTToken.model_validate({"access_token": decoded_token})
-        return _token if _token.access_token.exp >= time.time() else None
+        _token = autenticacao.AutenticacaoOut.model_validate({"access_token": decoded_token})
+        return _token if _token.hash_access_token.exp >= time.time() else None
     except:
         return None
 
@@ -60,7 +60,7 @@ class JWTBearer(HTTPBearer):
     def __init__(self, auto_error:bool = True):
         super(JWTBearer, self).__init__(auto_error=auto_error)
 
-    async def __call__(self, request: Request) -> autenticacao.JWTToken:
+    async def __call__(self, request: Request) -> autenticacao.AutenticacaoOut:
         authorization = request.headers.get("Authorization", "")
         scheme, _, credentials = authorization.partition(" ")
 
@@ -76,12 +76,12 @@ class JWTBearer(HTTPBearer):
             raise exceptions.Error_401_UNAUTHORIZED("invalid authorizarion code.")
 
 
-async def get_current_user(token: Annotated[autenticacao.JWTToken, Depends(JWTBearer())]) -> int:
-    cliente_id = token.access_token.sub # sub é o user id
+async def _get_current_user(token: Annotated[autenticacao.AutenticacaoOut, Depends(JWTBearer())]) -> int:
+    cliente_id = token.hash_access_token.sub # sub é o user id
     return cliente_id
 
 
-def login_required(current_user: Annotated[int, Depends(get_current_user)]) -> int:
+def login_required(current_user: Annotated[int, Depends(_get_current_user)]) -> int:
     if not current_user: # caso nao tiver user_id
         raise exceptions.Error_403_FORBIDDEN("access denied")
     return current_user
