@@ -5,7 +5,6 @@ cliente = sa.Table(
     'cliente',
     metadata,
     sa.Column('id', sa.Integer, primary_key=True, autoincrement=True),
-    sa.Column('senha', sa.String),
     sa.Column('endereco', sa.String),
     sa.Column('cadastrado_em', sa.TIMESTAMP(timezone=True), nullable=True)
     )

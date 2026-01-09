@@ -3,8 +3,9 @@ import time
 from typing import Annotated
 from uuid import uuid4
 from fastapi import Depends, Request
-from src import exceptions
 from fastapi.security import HTTPBearer
+import sqlalchemy as sa
+from src import exceptions
 from src.views import autenticacao
 from src.config import settings
 from src.models.autenticacao import autenticacao as autenticacao_table
@@ -12,26 +13,28 @@ from src.database import database
 
 
 async def _comparar_usuario_senha(credenciais_json) -> bool:
-    input_cliente_id = credenciais_json["cliente_id"]
-    input_senha = credenciais_json["senha"]
-    query = autenticacao_table.select(autenticacao_table.c.senha).where(autenticacao_table.c.cliente_id == input_cliente_id)
-    senha_armazenada = await database.execute(query)
-    if input_senha == senha_armazenada:
+    input_cliente_id = credenciais_json.cliente_id
+    input_senha = credenciais_json.senha
+    query = sa.select(autenticacao_table.c.senha).where(autenticacao_table.c.cliente_id == input_cliente_id)
+    senha_armazenada = await database.fetch_one(query)
+    if input_senha == senha_armazenada['senha']:
         return True
     return False
 
 
 async def autenticar(credenciais_json) -> autenticacao.JWTToken | None:
     if await _comparar_usuario_senha(credenciais_json):
-        return _gerar_token(credenciais_json["id"])
-    raise exceptions.Error_401_UNAUTHORIZED
+        return _gerar_token(credenciais_json.cliente_id)
+    raise exceptions.Error_401_UNAUTHORIZED("Senha inválida")
+
+
 def _gerar_token(user_id: int) -> autenticacao.JWTToken:
     now = time.time()
     payload = {
         "iss": "aprendi_na_dio",
-        "sub": user_id,
+        "sub": str(user_id),
         "aud": "projeto_sistema_bancario",
-        "exp": now + (60 * 30), # 30min
+        "exp": now + (60 * 30),
         "iat": now,
         "nbf": now,
         "jti": uuid4().hex,
@@ -41,26 +44,22 @@ def _gerar_token(user_id: int) -> autenticacao.JWTToken:
 
 
 async def _descondificar_token(token: str) -> autenticacao.JWTToken | None:
-    # recebe o valor do token (codificado)
     try:
         decoded_token = jwt.decode(
             token,
-            settings.algorithm,
+            settings.secret,
+            [settings.algorithm],
             audience="projeto_sistema_bancario",
-            algorithm=[settings.algorithm]
         )
         _token = autenticacao.JWTToken.model_validate({"access_token": decoded_token})
         return _token if _token.access_token.exp >= time.time() else None
-    except Exception:
+    except:
         return None
 
 class JWTBearer(HTTPBearer):
     def __init__(self, auto_error:bool = True):
         super(JWTBearer, self).__init__(auto_error=auto_error)
 
-    # esse __call__ é pra sobrescrever o comportamento do Bearer
-    # pq quando não tem autorização retornar ERRO 403
-    # mas o 403 é pra quando o usuario tá autenticado mas não tem autorização
     async def __call__(self, request: Request) -> autenticacao.JWTToken:
         authorization = request.headers.get("Authorization", "")
         scheme, _, credentials = authorization.partition(" ")
@@ -71,16 +70,18 @@ class JWTBearer(HTTPBearer):
             
             payload = await _descondificar_token(credentials)
             if not payload:
-                raise exceptions.Error_401_UNAUTHORIZED("invalid or expired token.")
+                raise exceptions.Error_401_UNAUTHORIZED(f"invalid or expired token: {payload}")
+            return payload
         else:
             raise exceptions.Error_401_UNAUTHORIZED("invalid authorizarion code.")
 
 
-async def get_current_user(token: Annotated[autenticacao.JWTToken, Depends(JWTBearer())]) -> dict[str, int]:
-    return {"user_id": token.access_token.sub} # sub é o user id
+async def get_current_user(token: Annotated[autenticacao.JWTToken, Depends(JWTBearer())]) -> int:
+    cliente_id = token.access_token.sub # sub é o user id
+    return cliente_id
 
 
-def login_required(current_user: Annotated[dict[str, int], Depends(get_current_user)]):
+def login_required(current_user: Annotated[int, Depends(get_current_user)]) -> int:
     if not current_user: # caso nao tiver user_id
         raise exceptions.Error_403_FORBIDDEN("access denied")
     return current_user
@@ -93,3 +94,12 @@ async def criar_senha(cliente_id, senha) -> int:
     )
     id = await database.execute(query)
     return id
+
+
+async def alterar_senha(credenciais_json, id_cliente_logado: Annotated[int, Depends(autenticacao.login_required)]):
+    if id_cliente_logado == credenciais_json.cliente_id:
+        query = autenticacao_table.update().values(credenciais_json.model_dump()).where(autenticacao_table.c.id == credenciais_json.cliente_id)
+        result = await database.execute(query)
+        return f"Senha alterada com sucesso!"
+    raise exceptions.Error_403_FORBIDDEN("Você não pode alterar senha de outros usuários!")
+

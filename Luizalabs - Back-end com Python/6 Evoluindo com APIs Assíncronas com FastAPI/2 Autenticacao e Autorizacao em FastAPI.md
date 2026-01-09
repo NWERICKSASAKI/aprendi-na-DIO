@@ -121,6 +121,7 @@ class JWTBearer(HTTPBearer):
                     status_code=status.HTTP_401_UNAUTHORIZED,
                     detail="invalid or expired token."
                 )
+            return payload
         else:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -198,10 +199,10 @@ async def delete_post(id: int):
     await service.delete(id=id)
 ```
 
-No Insonia, ir no método de autenticação e selecionar `Bearer Token`:
+No Insonia, ir no método de ~autenticação~ POST e selecionar `Bearer Token`:
 
 * `ENABLED`,
-* `TOKEN` você pode digitar `response` e selecionar `body attribute`, clica nele vermelho e na opção de `Request` selecionar `[Auth] POST login` e em `Filter (JSONPath or XPATH)` = `$.access_token` e em `Trigger Behavior` marca `Always - resend request when needed`,
 * `PREFIX` = `Bearer`
+* `TOKEN` você pode digitar `response` aguardar e selecionar `body attribute`, clica nele vermelho e na opção de `Request` selecionar `[Auth] POST login` e em `Filter (JSONPath or XPATH)` = `$.access_token` e em `Trigger Behavior` marca `Always - resend request when needed`,
 
 Precisa da biblioteca -> `poetry add "pyjwt"`

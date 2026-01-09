@@ -1,4 +1,4 @@
-from pydantic import AwareDatetime, BaseModel, NaiveDatetime
+from pydantic import BaseModel
 
 class AutenticacaoIn(BaseModel):
     cliente_id: int

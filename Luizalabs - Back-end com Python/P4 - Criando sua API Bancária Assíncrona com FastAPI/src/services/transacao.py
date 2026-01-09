@@ -44,6 +44,7 @@ async def _cadastrar_transacao(transacao_json, tipo_transacao:str, sucesso:bool)
     transacao_id: int = await database.execute(query)
     return transacao_id
 
+
 async def qtd_valor_saques(conta_id) -> tuple[int, float]:
     hoje = date.today()
     inicio = datetime.combine(hoje, time.min)
@@ -65,6 +66,7 @@ async def qtd_valor_saques(conta_id) -> tuple[int, float]:
 
     return (qtd_saques_hoje, valor_saques_hoje)
 
+
 async def _transacao_autorizada(transacao_json, tipo_transacao:str, conta_json) -> tuple[bool,str]:
     if tipo_transacao == "s":
         tipo_conta:str = conta_json["tipo"]
@@ -80,6 +82,7 @@ async def _transacao_autorizada(transacao_json, tipo_transacao:str, conta_json) 
         return False, "Saldo insuficiente"
     return True, ""
 
+
 async def _alterar_saldo(transacao_json, tipo:str, conta_json):
     conta_id: int =  transacao_json.conta_id
     mod:int = 1 if tipo=='d' else -1
@@ -88,11 +91,13 @@ async def _alterar_saldo(transacao_json, tipo:str, conta_json):
     await database.execute(query)
     return
 
+
 async def realizar_transacao(transacao_json, tipo_transacao:str):
     async with database.transaction():
         conta_id: int = transacao_json.conta_id
         if not await conta_services._id_existe(conta_id):
             raise exceptions.Error_404_NOT_FOUND(f"Conta de ID {conta_id} não encontrada!")
+        
         conta_json: dict = await conta_services.obter_conta(conta_id)
         sucesso: bool = True
         if tipo_transacao == 's': # saque
@@ -100,9 +105,10 @@ async def realizar_transacao(transacao_json, tipo_transacao:str):
         transacao_id: int = await _cadastrar_transacao(transacao_json, tipo_transacao=tipo_transacao, sucesso=sucesso)
         if not sucesso:
             raise exceptions.Error_403_FORBIDDEN(motivo_erro)
-            return
+
         await _alterar_saldo(transacao_json, tipo=tipo_transacao, conta_json=conta_json)
         return transacao_id
+
 
 async def deletar_transacao_conta(conta_id):
     result = await database.execute(transacao.delete().where(transacao.c.conta_id == conta_id))

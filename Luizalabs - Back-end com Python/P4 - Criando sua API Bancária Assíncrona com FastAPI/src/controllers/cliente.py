@@ -15,8 +15,6 @@ ClienteOut = Annotated[
     Field(discriminator="tipo")
 ]
 
-# TODO adicionar dependencias de login com Depends
-
 router = APIRouter(prefix="/clientes", tags=["Clientes"])
 
 @router.get("/", response_model=list[ClienteOut])
