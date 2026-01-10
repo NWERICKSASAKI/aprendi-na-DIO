@@ -4,7 +4,7 @@ palavra = input("Digite uma palavra: ")
 
 palindromo = True
 for i in range(len(palavra)):
-    if palavra[i] != palavra[-i]:
+    if palavra[i] != palavra[-1-i]:
         palindromo = False
 
 if palindromo:
