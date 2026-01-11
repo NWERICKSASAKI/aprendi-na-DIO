@@ -3,4 +3,4 @@ from typing import Optional
 class AutenticacaoIn(BaseModel):
     cliente_id: int
     senha: str
-    adm: Optional[bool] = Field(default=False) 
+    is_adm: Optional[bool] = Field(default=False) 

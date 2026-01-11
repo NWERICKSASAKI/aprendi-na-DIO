@@ -1,8 +1,9 @@
 import sqlalchemy as sa
+from datetime import datetime, timezone
+
 from src.database import database
 from src.models.cliente import cliente, pessoa_fisica, pessoa_juridica
 from src.services import conta
-from datetime import datetime, timezone
 from src import exceptions
 from src.services import autenticacao
 
@@ -14,46 +15,49 @@ async def _id_existe(id) -> bool:
         return False
     return True
 
-async def _criar_cliente_base(cliente_json) -> int:
+async def _criar_cliente_base(cliente_dict) -> int:
     query = cliente.insert().values(
-        endereco = cliente_json.endereco,
+        endereco = cliente_dict["endereco"],
         cadastrado_em = datetime.now(timezone.utc)
     )
     id = await database.execute(query)
     return id
 
-async def _criar_cliente_pf(id, cliente_json) -> int:
+async def _criar_cliente_pf(id, cliente_dict) -> int:
     query = pessoa_fisica.insert().values(
         cliente_id = id,
-        cpf = cliente_json.cpf,
-        nome = cliente_json.nome,
-        nascimento = cliente_json.nascimento
+        cpf = cliente_dict["cpf"],
+        nome = cliente_dict["nome"],
+        nascimento = datetime.strptime(str(cliente_dict["nascimento"]), "%Y-%m-%d")
     )
     id = await database.execute(query)
     return id
 
-async def _criar_cliente_pj(id, cliente_json) -> int:
+async def _criar_cliente_pj(id, cliente_dict) -> int:
         query = pessoa_juridica.insert().values(
             cliente_id = id,
-            cnpj = cliente_json.cnpj,
-            razao_social = cliente_json.razao_social
+            cnpj = cliente_dict["cnpj"],
+            razao_social = cliente_dict["razao_social"]
         )
         id = await database.execute(query)
         return id
 
-async def criar_cliente(cliente_json, dados_usuario_logado) -> int:
+async def criar_cliente(cliente_dict, dados_usuario_logado) -> int:
 
+    if not dados_usuario_logado:
+        raise exceptions.Error_401_UNAUTHORIZED("precisa estar logado!")
+    
     if not dados_usuario_logado["is_adm"]:
-        raise exceptions.Error_401_UNAUTHORIZED("Apenas ADM!")
+        raise exceptions.Error_403_FORBIDDEN("Apenas ADM!")
 
     async with database.transaction(): # commit automático e rollback em caso de erro
-        id = await _criar_cliente_base(cliente_json)
-        await autenticacao.criar_senha(id, cliente_json.senha)
-        match cliente_json.tipo:
+        id = await _criar_cliente_base(cliente_dict)
+        await autenticacao.criar_senha(id, cliente_dict["senha"])
+        match cliente_dict["tipo"]:
             case "pf":
-                await _criar_cliente_pf(id, cliente_json)
+                await _criar_cliente_pf(id, cliente_dict)
             case "pj":
-                await _criar_cliente_pj(id, cliente_json)
+                await _criar_cliente_pj(id, cliente_dict)
         return id
 
 
@@ -157,7 +161,7 @@ async def deletar_cliente(cliente_id: int, dados_usuario_logado: dict) -> bool:
         return result>0 # se apagou alguma linha
 
 
-async def atualizar_cliente(cliente_id: int, cliente_json, dados_usuario_logado: dict):
+async def atualizar_cliente(cliente_id: int, cliente_dict, dados_usuario_logado: dict):
 
     if not dados_usuario_logado["is_adm"] and not cliente_id == dados_usuario_logado["cliente_id"]:
         raise exceptions.Error_403_FORBIDDEN("Você não pode atualizar dados de outros clientes!")
@@ -166,11 +170,10 @@ async def atualizar_cliente(cliente_id: int, cliente_json, dados_usuario_logado:
         raise exceptions.Error_404_NOT_FOUND()
     
     async with database.transaction():
-        dicio_dados = cliente_json.model_dump(exclude_unset=True)
-        tipo = dicio_dados.pop("tipo")
+        tipo = cliente_dict.pop("tipo")
 
         dados_base = {}
-        for k,v in dicio_dados.items():
+        for k,v in cliente_dict.items():
             if k in cliente.c:
                 dados_base[k]=v
         if dados_base:
@@ -179,7 +182,7 @@ async def atualizar_cliente(cliente_id: int, cliente_json, dados_usuario_logado:
         match tipo:
             case 'pf':
                 dados_pf = {}
-                for k,v in dicio_dados.items():
+                for k,v in cliente_dict.items():
                     if k in pessoa_fisica.c:
                         dados_pf[k]=v
                 if dados_pf:
@@ -187,7 +190,7 @@ async def atualizar_cliente(cliente_id: int, cliente_json, dados_usuario_logado:
 
             case 'pj':
                 dados_pj = {}
-                for k,v in dicio_dados.items():
+                for k,v in cliente_dict.items():
                     if k in pessoa_juridica.c:
                         dados_pj[k]=v
                 if dados_pj:

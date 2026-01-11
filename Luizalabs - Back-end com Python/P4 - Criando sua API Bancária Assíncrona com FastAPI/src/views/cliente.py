@@ -1,6 +1,7 @@
-from pydantic import BaseModel, AwareDatetime
+from pydantic import BaseModel, AwareDatetime, Field
 from datetime import date
-from typing import Literal
+from typing import Literal, Annotated, Union
+
 
 class ClienteOut(BaseModel):
     id: int
@@ -20,3 +21,9 @@ class PessoaJuridicaOut(ClienteOut):
     pj_id: int
     cnpj: str
     razao_social: str
+
+
+cliente_out = Annotated[
+    Union[PessoaFisicaOut, PessoaJuridicaOut],
+    Field(discriminator="tipo")
+]

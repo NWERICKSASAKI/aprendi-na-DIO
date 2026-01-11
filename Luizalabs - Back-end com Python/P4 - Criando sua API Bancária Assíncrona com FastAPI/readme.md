@@ -1441,10 +1441,10 @@ class AccessToken(BaseModel):
 Alteração no `src/services/autenticacao.py`:
 
 ```py
-async def autenticar(credenciais_json) -> autenticacao.AutenticacaoOut | None:
-    if await _comparar_usuario_senha(credenciais_json):
-        return _gerar_token(credenciais_json.cliente_id, credenciais_json.adm)  # <-- alterado
-    raise exceptions.Error_401_UNAUTHORIZED("Senha inválida")
+async def autenticar(credenciais_json) -> JWTToken | None:
+    if not await _comparar_usuario_senha(credenciais_json):
+        raise exceptions.Error_401_UNAUTHORIZED("Senha inválida")
+    return _gerar_token(credenciais_json.cliente_id, credenciais_json.adm)
 
 
 def _gerar_token(user_id: int, adm: bool) -> autenticacao.AutenticacaoOut:  # <-- alterado
@@ -1489,9 +1489,43 @@ e por fim a função respectiva em `src/services/autenticacao.py` também foi al
 
 ```py
 async def alterar_senha(credenciais_json, dados_usuario_logado: Annotated[dict, Depends(autenticacao.login_required)]):
-    if not dados_usuario_logado["is_adm"] or not dados_usuario_logado["cliente_id"] == credenciais_json.cliente_id:
+    if not dados_usuario_logado["is_adm"] and not dados_usuario_logado["cliente_id"] == credenciais_json.cliente_id:
         raise exceptions.Error_403_FORBIDDEN("Você não pode alterar senha de outros usuários!")
     query = autenticacao_table.update().values(credenciais_json.model_dump()).where(autenticacao_table.c.id == credenciais_json.cliente_id)
     result = await database.execute(query)
     return f"Senha alterada com sucesso!"
+
+# ...
+
+async def _comparar_usuario_senha(credenciais_json) -> bool:
+    
+    # por ora, pra logar como ADM não precisa de senha
+    if credenciais_json.is_adm == True:
+        return True
+    
+    input_cliente_id = credenciais_json.cliente_id
+    input_senha = credenciais_json.senha
+    query = sa.select(autenticacao_table.c.senha).where(autenticacao_table.c.cliente_id == input_cliente_id)
+    senha_armazenada = await database.fetch_one(query)
+    if input_senha == senha_armazenada['senha']:
+        return True
+    return False
+```
+
+### 6 Teste Unitário
+
+Infezlimente ficou inviável testar cada uma das chamadas das API, seja sem credencial, com credencial de usuário ou de administrador, portanto vou utilizar testes unitários para testar cada chamada (e corrigir os bugs que eu encontrar)
+
+Primeiro vou precissar acrescentar esses seguintes pacotes ao poetry (na modalidade de desenvolvimento):
+
+`poetry add pytest --dev`  
+`poetry add pytest-asyncio --dev`  
+`poetry add pytest-mock --dev`  
+`poetry add httpx --dev`  
+
+Também foi acrescentado no arquivo `pyproject.toml` o seguinte trecho:
+
+```toml
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
 ```

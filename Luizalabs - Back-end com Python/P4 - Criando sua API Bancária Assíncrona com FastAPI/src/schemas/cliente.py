@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from typing import Literal
 from datetime import date
-
+from typing import Union
 class ClienteIn(BaseModel):
     endereco: str
     senha: str
@@ -33,3 +33,5 @@ class PessoaJuridicaInEdit(ClienteInEdit):
     cnpf: str | None = None
     razao_social: str | None = None
     
+cliente_in = Union[PessoaFisicaIn, PessoaJuridicaIn]
+cliente_in_edit = Union[PessoaFisicaInEdit, PessoaJuridicaInEdit]

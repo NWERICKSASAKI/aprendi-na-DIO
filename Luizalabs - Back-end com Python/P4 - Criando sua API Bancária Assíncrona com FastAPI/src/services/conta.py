@@ -42,8 +42,11 @@ async def _criar_conta_empresarial(conta_id, conta_json) -> int:
 
 async def criar_conta(conta_json, dados_usuario_logado: dict) -> int:
 
+    if not dados_usuario_logado:
+        raise exceptions.Error_401_UNAUTHORIZED("Precisa estar logado")
+    
     if not dados_usuario_logado["is_adm"]:
-        raise exceptions.Error_401_UNAUTHORIZED("apenas ADM!")
+        raise exceptions.Error_403_FORBIDDEN("apenas ADM!")
 
     async with database.transaction():
         id = await _criar_conta_base(conta_json)
@@ -86,8 +89,11 @@ def _mapear_conta(row) -> dict:
 
 async def listar_contas(dados_usuario_logado) -> list:
 
+    if not dados_usuario_logado:
+        raise exceptions.Error_401_UNAUTHORIZED("precisa estar logado!")
+
     if not dados_usuario_logado["is_adm"]:
-        raise exceptions.Error_401_UNAUTHORIZED("apenas ADM!")
+        raise exceptions.Error_403_FORBIDDEN("apenas ADM!")
 
     query = sa.select(
         conta.c.id,

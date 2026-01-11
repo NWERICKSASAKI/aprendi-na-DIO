@@ -11,29 +11,53 @@ from src.config import settings
 from src.models.autenticacao import autenticacao as autenticacao_table
 from src.database import database
 
+async def get_senha_do_usuario(id_cliente: int) -> str | None:
+    query = sa.select(autenticacao_table.c.senha).where(autenticacao_table.c.cliente_id == id_cliente)
+    result = await database.fetch_one(query)
+    if not result:
+        return None
+    senha_armazenada: str = result["senha"]
+    return senha_armazenada 
 
-async def _comparar_usuario_senha(credenciais_json) -> bool:
-    input_cliente_id = credenciais_json.cliente_id
-    input_senha = credenciais_json.senha
-    query = sa.select(autenticacao_table.c.senha).where(autenticacao_table.c.cliente_id == input_cliente_id)
-    senha_armazenada = await database.fetch_one(query)
-    if input_senha == senha_armazenada['senha']:
+
+async def _comparar_usuario_senha(credenciais_dict: dict) -> None:
+    
+    # por ora, pra logar como ADM não precisa de senha
+    is_adm = credenciais_dict["is_adm"]
+    if is_adm == True:
         return True
-    return False
+    
+    if not "cliente_id" in credenciais_dict:
+        raise exceptions.Error_406_NOT_ACCEPTABLE("JSON deve conter 'cliente_id'")
+    input_cliente_id = credenciais_dict["cliente_id"]
+
+    if not "senha" in credenciais_dict:
+        raise exceptions.Error_406_NOT_ACCEPTABLE("JSON deve conter 'senha'")
+    input_senha = credenciais_dict["senha"]
+    
+    senha_armazenada: str = await get_senha_do_usuario(input_cliente_id)
+    if not senha_armazenada:
+        if is_adm:
+            raise exceptions.Error_404_NOT_FOUND(f"Usuário ID {credenciais_dict["cliente_id"]} inexistente")
+        raise exceptions.Error_401_UNAUTHORIZED("Usuário ou Senha inválida")
+
+    if not input_senha == senha_armazenada:
+        raise exceptions.Error_401_UNAUTHORIZED("Usuário ou Senha inválida")
+
+    return
 
 
-async def autenticar(credenciais_json) -> JWTToken | None:
-    if await _comparar_usuario_senha(credenciais_json):
-        return _gerar_token(credenciais_json.cliente_id, credenciais_json.adm)
-    raise exceptions.Error_401_UNAUTHORIZED("Senha inválida")
+async def autenticar(credenciais_dict: dict) -> JWTToken | None:
+    await _comparar_usuario_senha(credenciais_dict)   
+    return _gerar_token(credenciais_dict["cliente_id"], credenciais_dict["is_adm"])
 
 
-def _gerar_token(user_id: int, adm: bool) -> JWTToken:
+def _gerar_token(user_id: int, is_adm: bool) -> JWTToken:
     now = time.time()
     payload = {
         "iss": "aprendi_na_dio",
         "sub": str(user_id),
-        "adm": adm,
+        "adm": is_adm,
         "aud": "projeto_sistema_bancario",
         "exp": now + (60 * 30),
         "iat": now,
@@ -76,16 +100,21 @@ class JWTBearer(HTTPBearer):
             raise exceptions.Error_401_UNAUTHORIZED("JWTBearer - invalid authorizarion code.")
 
 
-async def _get_current_user(token: Annotated[JWTToken, Depends(JWTBearer())]) -> int:
+async def _get_current_user(token: Annotated[JWTToken, Depends(JWTBearer())]) -> dict:
     return {
         "cliente_id" : token.access_token.sub, # sub é o user id
         "is_adm" : token.access_token.adm # sub é o user id
     }
 
 
-def login_required(dados_usuario_logado: Annotated[dict, Depends(_get_current_user)]) -> int:
-    if not dados_usuario_logado["cliente_id"]: # caso nao tiver user_id
-        raise exceptions.Error_403_FORBIDDEN("access denied")
+def login_required(dados_usuario_logado: Annotated[dict, Depends(_get_current_user)]) -> dict:
+    if not dados_usuario_logado:
+        raise exceptions.Error_401_UNAUTHORIZED("access denied")
+    
+    cliente_id = dados_usuario_logado.get("cliente_id")
+    if cliente_id is None:
+        raise exceptions.Error_401_UNAUTHORIZED("access denied")
+    
     return dados_usuario_logado
 
 
@@ -98,10 +127,23 @@ async def criar_senha(cliente_id, senha) -> int:
     return id
 
 
-async def alterar_senha(credenciais_json, dados_usuario_logado: Annotated[dict, Depends(autenticacao.login_required)]):
-    if not dados_usuario_logado["is_adm"] and not dados_usuario_logado["cliente_id"] == credenciais_json.cliente_id:
-        raise exceptions.Error_403_FORBIDDEN("Você não pode alterar senha de outros usuários!")
-    query = autenticacao_table.update().values(credenciais_json.model_dump()).where(autenticacao_table.c.id == credenciais_json.cliente_id)
+async def alterar_senha(credenciais_dict: dict, dados_usuario_logado: Annotated[dict, Depends(login_required)]):
+
+    if not dados_usuario_logado:
+        raise exceptions.Error_406_NOT_ACCEPTABLE("Token não reconhecível")
+    
+    if not dados_usuario_logado["is_adm"]: 
+        if not dados_usuario_logado["cliente_id"] == credenciais_dict["cliente_id"]:
+            raise exceptions.Error_403_FORBIDDEN("Você não pode alterar senha de outros usuários!")
+    
+    usuario_existe = await get_senha_do_usuario(credenciais_dict["cliente_id"])
+    if not usuario_existe:
+        raise exceptions.Error_404_NOT_FOUND()
+
+    if "is_adm" in credenciais_dict:
+        credenciais_dict.pop('is_adm')
+
+    query = autenticacao_table.update().values(credenciais_dict).where(autenticacao_table.c.id == credenciais_dict["cliente_id"])
     result = await database.execute(query)
     return f"Senha alterada com sucesso!"
 

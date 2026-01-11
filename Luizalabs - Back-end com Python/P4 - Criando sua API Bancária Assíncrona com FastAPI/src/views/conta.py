@@ -1,5 +1,5 @@
-from pydantic import BaseModel, AwareDatetime
-from typing import Literal
+from pydantic import BaseModel, AwareDatetime, Field
+from typing import Literal, Annotated, Union
 
 class ContaOut(BaseModel):
     id: int
@@ -20,3 +20,8 @@ class ContaEmpresarialOut(ContaOut):
     ce_id: int
     emprestimo: float
     emprestimo_limite: float
+
+conta_out = Annotated[
+    Union[ContaCorrenteOut,ContaEmpresarialOut],
+    Field(discriminator="tipo")
+]
