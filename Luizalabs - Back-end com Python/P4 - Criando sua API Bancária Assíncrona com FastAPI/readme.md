@@ -1529,3 +1529,414 @@ Também foi acrescentado no arquivo `pyproject.toml` o seguinte trecho:
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 ```
+
+## 6.1 conftest.py
+
+O arquivo `/test/conftest.py` ficou conforme abaixo:
+
+```py
+import asyncio
+
+import pytest_asyncio
+from httpx import ASGITransport, AsyncClient
+
+from src.config import settings
+from src.services.autenticacao import _gerar_token
+
+settings.database_url = "sqlite:///tests.db"
+
+@pytest_asyncio.fixture
+async def db(request):
+
+    from src.database import database, engine, metadata
+
+    from src.models.autenticacao import autenticacao
+    from src.models.cliente import cliente, pessoa_fisica, pessoa_juridica
+    from src.models.conta import conta, conta_corrente, conta_empresarial
+    from src.models.transacao import transacao
+
+    await database.connect()
+    metadata.create_all(engine)
+
+    def teardown():
+        async def _teardown():
+            await database.disconnect()
+            metadata.drop_all(engine) 
+        asyncio.run(_teardown())
+    request.addfinalizer(teardown)
+
+
+@pytest_asyncio.fixture
+async def client(db):
+    from src.main import app
+
+    transport = ASGITransport(app=app)
+    headers = {
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+    }
+    async with AsyncClient(base_url = "http://test", transport=transport, headers=headers) as client:
+        yield client
+
+# para as chamadas de API que requer token de cliente
+@pytest_asyncio.fixture
+async def access_token_cliente_1(client: AsyncClient):
+    dados = {
+        "cliente_id": 1,
+        "is_adm": False
+    }
+    
+    token = _gerar_token(dados["cliente_id"], dados["is_adm"])
+    return token["access_token"]
+
+# para as chamadas de API que requer token de outro cliente
+@pytest_asyncio.fixture
+async def access_token_cliente_2(client: AsyncClient):
+    dados = {
+        "cliente_id": 2,
+        "is_adm": False
+    }
+    
+    token = _gerar_token(dados["cliente_id"], dados["is_adm"])
+    return token["access_token"]
+
+
+# para as chamadas de API que requer token de administrador
+@pytest_asyncio.fixture
+async def access_token_adm(client: AsyncClient):
+    dados = {
+        "cliente_id": 0,
+        "is_adm": True
+    }
+    
+    token = _gerar_token(dados["cliente_id"], dados["is_adm"])
+    return token["access_token"]
+
+# para deixar criado um cliente no banco de dados para as operações de consulta, edição, etc.
+@pytest_asyncio.fixture(autouse=True)
+async def criar_cliente_1(db):
+    from src.services import cliente
+    
+    cliente_dict = {
+        "endereco": "R. Tanto Faz, sem numero",
+        "senha": "1234",
+        "tipo": "pf",
+        "cpf": "12345678901",
+        "nome": "Testonildo da Silva",
+        "nascimento": "1993-02-01"
+    }
+
+    await cliente.criar_cliente(cliente_dict, {"is_adm": True})
+
+
+# para deixar criado outro cliente no banco de dados para as operações de consulta, edição, etc.
+@pytest_asyncio.fixture(autouse=True)
+async def criar_cliente_2(db):
+    from src.services import cliente
+    
+    cliente_dict = {
+        "endereco": "Rua Empresarial, 1.000",
+        "senha": "Senha-Secreta",
+        "tipo": "pj",
+        "cnpj": "123.456.789/000-1",
+        "razao_social": "Testes & CIA"
+    }
+
+    await cliente.criar_cliente(cliente_dict, {"is_adm": True})
+```
+
+## 6.2 Teste de Autenticação
+
+Na pasta `/test/integration/controllers` há dois arquivos: `test_1_login_post.py` e `test_2_login_patch.py`.
+
+Abaixo está o `test_1_login_post.py`, na qual só requer validção de retorno e se há conteúdo no token.
+
+```py
+from fastapi import status
+from httpx import AsyncClient
+
+PREFIXO = "/login/"
+
+async def test_post_login_adm_success(client: AsyncClient):
+
+    # Given
+    json_autenticacao = {
+        "cliente_id": 99,
+        "senha": "tanto-faz",
+        "is_adm": True
+    }    
+
+    # When
+    response = await client.post(PREFIXO, json=json_autenticacao)
+    
+    # Then
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json()["access_token"] is not None
+
+
+async def test_post_login_cliente_success(client: AsyncClient): 
+
+    # Given
+    json_autenticacao = {
+        "cliente_id": 1,
+        "senha": "1234"
+    }    
+
+    # When
+    response = await client.post(PREFIXO, json=json_autenticacao)
+    
+    # Then
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json()["access_token"] is not None
+
+
+async def test_post_login_cliente_senha_errada(client: AsyncClient):
+
+    # Given
+    json_autenticacao = {
+        "cliente_id": 1,
+        "senha": "senha-errada"
+    }    
+
+    # When
+    response = await client.post(PREFIXO, json=json_autenticacao)
+    
+    # Then
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+async def test_post_login_cliente_usuario_inexistente(client: AsyncClient):
+    
+    # Given
+    json_autenticacao = {
+        "cliente_id": 999,
+        "senha": "tanto-faz"
+    }    
+
+    # When
+    response = await client.post(PREFIXO, json=json_autenticacao)
+    
+    # Then
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+```
+
+Já no `test_2_login_patch.py` é necessário estar autenticado para realizar os `PATCH/UPDATES`, então explorei tanto realizar as ações autenticados devidamente, sem autenticação, como administrador ou com autenticação indevida:
+
+```py
+from fastapi import status
+from httpx import AsyncClient
+from src.services.autenticacao import get_senha_do_usuario
+
+PREFIXO = "/login/"
+
+async def test_patch_senha_sem_estar_logado_failed(client: AsyncClient):
+
+    # Given
+    json_autenticacao = {
+        "cliente_id": 1,
+        "senha": "nova-senha"
+    }    
+
+    # When
+    response = await client.patch(PREFIXO, json=json_autenticacao)
+    
+    # Then
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+async def test_patch_senha_logado_success(client: AsyncClient, access_token_cliente_1: str):
+
+    # Given
+    headers = {"Authorization": f"Bearer {access_token_cliente_1}"}
+    data = {
+        "cliente_id": 1,
+        "senha": "nova-senha"
+    }    
+
+    # When
+    response = await client.patch(PREFIXO, json=data, headers=headers)
+    senha_no_bd = await get_senha_do_usuario(data["cliente_id"])
+    
+    # Then
+    assert response.status_code == status.HTTP_202_ACCEPTED
+    assert senha_no_bd == data["senha"]
+
+
+async def test_patch_senha_outro_usuario_failed(client: AsyncClient, access_token_cliente_1: str):
+
+    # Given
+    headers = {"Authorization": f"Bearer {access_token_cliente_1}"}
+    data = {
+        "cliente_id": 2,
+        "senha": "nova_senha_do_user_1"
+    }    
+
+    # When
+    response = await client.patch(PREFIXO, json=data, headers=headers)
+    senha_no_bd = await get_senha_do_usuario(data["cliente_id"])
+    
+    # Then
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert senha_no_bd != data["senha"]
+
+
+async def test_patch_senha_via_adm_success(client: AsyncClient, access_token_adm: str):
+
+    # Given
+    headers = {"Authorization": f"Bearer {access_token_adm}"}
+    data = {
+        "cliente_id": 1,
+        "senha": "senha-temporaria"
+    }    
+
+    # When
+    response = await client.patch(PREFIXO, json=data, headers=headers)
+    senha_no_bd = await get_senha_do_usuario(data["cliente_id"])
+
+    # Then
+    assert response.status_code == status.HTTP_202_ACCEPTED
+    assert senha_no_bd == data["senha"]
+
+
+async def test_patch_senha_via_adm_cliente_inexistente_failed(client: AsyncClient, access_token_adm: str):
+
+    # Given
+    headers = {"Authorization": f"Bearer {access_token_adm}"}
+    data = {
+        "cliente_id": 999,
+        "senha": "senha-temporaria"
+    }    
+
+    # When
+    response = await client.patch(PREFIXO, json=data, headers=headers)
+
+    # Then
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+```
+
+Para realizar os testes é necessário executar o seguinte comando via terminal: `poetry run pytest`.
+
+Observações:
+
+- As pastas e arquivos devem começar com `test_`  
+- Caso ocorrer erro 422 está relacionado aos "pydantic" de entrada (schemas)
+- Você vai perceber que há muitos erros de lógicas que você só conseguiria perceber via testes automatizados e não manuais.
+
+## 6.3 Exemplo clientes
+
+Para testar os clientes (ou qualquer outras rotas da api) deixei uma pasta separada `test/integration/controllers/cliente` separado em arquivos:
+
+- `test_1_clientes_get.py`
+- `test_2_clientes_get_id.py`
+- `test_3_clientes_post.py`
+- `test_4_clientes_patch.py`
+
+Embora não tenha feito com o comando **delete** ou as outras rotas de API, a lógica será a mesma: Em geral testo todas as possíveis chamadas com cenários distintos de autenticação e cenários possíveis de JSON diferentes ou até mesmo ausentes.
+
+Abaixo como ficou o arquivo `test_4_clientes_patch.py`:
+
+```py
+from fastapi import status
+from httpx import AsyncClient
+from src.services import cliente
+
+PREFIXO = "/clientes/1"
+
+async def test_patch_1_sem_autenticacao_failed(client: AsyncClient):
+
+    # Given
+    data = {
+        "endereco": "Rua Editado, 0",
+        "tipo": "pf",
+        "cpf":"123.456.789-0"
+    }
+
+    # When
+    response = await client.patch(PREFIXO, json=data)
+    endereco = await cliente.obter_cliente(1, {'is_adm':True})
+
+    # Then
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+    assert endereco["endereco"] != "Rua Editado, 0"
+
+
+async def test_patch_1_autenticado_cliente1_success(client: AsyncClient, access_token_cliente_1: str):
+
+    # Given
+    headers = {"Authorization": f"Bearer {access_token_cliente_1}"}
+    data = {
+        "endereco": "Rua Editado, 1",
+        "tipo": "pf",
+        "cpf":"123.456.789-0"
+    }
+
+    # When
+    response = await client.patch(PREFIXO, headers=headers, json=data)
+    endereco = await cliente.obter_cliente(1, {'is_adm':True})
+    
+    # Then
+    assert response.status_code == status.HTTP_202_ACCEPTED
+    assert endereco["endereco"] == "Rua Editado, 1"
+
+
+async def test_patch_1_autenticado_cliente1_sem_json_failed_como_adm(client: AsyncClient, access_token_adm: str):
+
+    # Given
+    headers = {"Authorization": f"Bearer {access_token_adm}"}
+
+    # When
+    response = await client.patch(PREFIXO, headers=headers)
+    
+    # Then
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
+
+
+async def test_patch_1_autenticado_cliente1_sem_json_failed_como_cliente(client: AsyncClient, access_token_cliente_1: str):
+
+    # Given
+    headers = {"Authorization": f"Bearer {access_token_cliente_1}"}
+
+    # When
+    response = await client.patch(PREFIXO, headers=headers)
+    
+    # Then
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
+
+
+async def test_patch_1_autenticado_cliente2_failed(client: AsyncClient, access_token_cliente_2: str):
+
+    # Given
+    headers = {"Authorization": f"Bearer {access_token_cliente_2}"}
+    data = {
+        "endereco": "Rua Editado, 2",
+        "tipo": "pf",
+        "cpf":"123.456.789-0"
+    }
+
+    # When
+    response = await client.patch(PREFIXO, headers=headers, json=data)
+    endereco = await cliente.obter_cliente(1, {'is_adm':True})
+    
+    # Then
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert endereco["endereco"] != "Rua Editado, 2"
+
+
+async def test_patch_1_autenticado_adm_sucesso(client: AsyncClient, access_token_adm: str):
+
+    # Given
+    headers = {"Authorization": f"Bearer {access_token_adm}"}
+    data = {
+        "endereco": "Rua Editado, 3",
+        "tipo": "pf",
+        "cpf":"123.456.789-0"
+    }
+
+    # When
+    response = await client.patch(PREFIXO, headers=headers, json=data)
+    endereco = await cliente.obter_cliente(1, {'is_adm':True})
+
+    # Then
+    assert response.status_code == status.HTTP_202_ACCEPTED
+    assert endereco["endereco"] == "Rua Editado, 3"
+```

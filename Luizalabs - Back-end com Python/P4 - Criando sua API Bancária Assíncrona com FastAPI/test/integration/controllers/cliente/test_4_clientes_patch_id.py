@@ -52,6 +52,7 @@ async def test_patch_1_autenticado_cliente1_sem_json_failed_como_adm(client: Asy
     # Then
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
 
+
 async def test_patch_1_autenticado_cliente1_sem_json_failed_como_cliente(client: AsyncClient, access_token_cliente_1: str):
 
     # Given

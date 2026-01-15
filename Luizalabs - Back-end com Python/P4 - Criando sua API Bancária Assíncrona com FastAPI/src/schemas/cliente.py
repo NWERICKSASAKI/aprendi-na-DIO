@@ -8,7 +8,7 @@ class ClienteIn(BaseModel):
 
 class ClienteInEdit(BaseModel):
     endereco: str | None = None
-    senha: str
+    senha: str | None = None
 
 class PessoaFisicaIn(ClienteIn):
     tipo: Literal["pf"] = "pf"

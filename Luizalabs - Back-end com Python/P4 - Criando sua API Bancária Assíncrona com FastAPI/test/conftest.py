@@ -104,4 +104,3 @@ async def criar_cliente_2(db):
     }
 
     await cliente.criar_cliente(cliente_dict, {"is_adm": True})
-

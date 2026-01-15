@@ -161,13 +161,13 @@ async def deletar_cliente(cliente_id: int, dados_usuario_logado: dict) -> bool:
         return result>0 # se apagou alguma linha
 
 
-async def atualizar_cliente(cliente_id: int, cliente_dict, dados_usuario_logado: dict):
+async def atualizar_cliente(cliente_id: int, cliente_dict: dict, dados_usuario_logado: dict):
 
     if not dados_usuario_logado["is_adm"] and not cliente_id == dados_usuario_logado["cliente_id"]:
         raise exceptions.Error_403_FORBIDDEN("Você não pode atualizar dados de outros clientes!")
 
     if not await _id_existe(cliente_id):
-        raise exceptions.Error_404_NOT_FOUND()
+        raise exceptions.Error_404_NOT_FOUND(f"Cliente com ID {cliente_id} não existe")
     
     async with database.transaction():
         tipo = cliente_dict.pop("tipo")
@@ -195,4 +195,8 @@ async def atualizar_cliente(cliente_id: int, cliente_dict, dados_usuario_logado:
                         dados_pj[k]=v
                 if dados_pj:
                     await database.execute(pessoa_juridica.update().values(**dados_pj).where(pessoa_juridica.c.id == cliente_id))
+        
+        if "senha" in dados_base:
+            await autenticacao.alterar_senha(cliente_dict, dados_usuario_logado)
+            
         return
