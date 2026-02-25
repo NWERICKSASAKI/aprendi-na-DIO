@@ -10,6 +10,14 @@ from src.controllers import autenticacao
 from src.controllers import transacao
 from src import exceptions
 
+
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from fastapi import Request
+
+
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await database.connect()
@@ -27,6 +35,9 @@ app.include_router(cliente.router)
 app.include_router(conta.router)
 app.include_router(transacao.router)
 
+app.mount("/static", StaticFiles(directory="frontend/static"), name="static")
+
+templates = Jinja2Templates(directory="frontend/templates")
 
 @app.exception_handler(exceptions.Error_401_UNAUTHORIZED)
 async def unathorized(request: Request, exc: exceptions.Error_401_UNAUTHORIZED):

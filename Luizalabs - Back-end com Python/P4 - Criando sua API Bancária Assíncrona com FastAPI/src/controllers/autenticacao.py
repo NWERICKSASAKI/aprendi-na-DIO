@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, Request
+from fastapi.templating import Jinja2Templates
+
 from http import HTTPStatus
 
 from src.schemas.autenticacao import AutenticacaoIn
@@ -9,7 +11,17 @@ from typing import Annotated
 
 router = APIRouter(prefix="/login", tags=["Autenticação"])
 
-@router.post("/", response_model=AutenticacaoOut, status_code=status.HTTP_201_CREATED)
+
+
+
+templates = Jinja2Templates(directory="frontend/templates")
+
+
+@router.get("/login")
+async def page_login(request: Request):
+    return templates.TemplateResponse("login.html", {"request": request})
+
+@router.post("/", response_model=AutenticacaoOut, status_code=status.HTTP_200_OK)
 async def autenticar(credenciais: AutenticacaoIn):
     return await autenticacao.autenticar(credenciais.model_dump())
 
