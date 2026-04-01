@@ -60,3 +60,5 @@ Para gerar os dados foi utilizado as configurações abaixo:
 | allow_ads | Boolean | blank: 5 % |
 
 Salvando o CSV localmente neste repositório, vou acessar o arquivo simulando como se estivesse na internet.
+
+No caso o CSV se localiza na seguinte url: <https://github.com/NWERICKSASAKI/aprendi-na-DIO/raw/refs/heads/main/TOTVS%20-%20Fundamentos%20de%20Engenharia%20de%20Dados%20e%20Machine%20Learning/P1%20-%20Explorando%20IA%20Generativa%20em%20um%20Pipeline%20de%20ETL%20com%20Python/MOCK_DATA.csv>
