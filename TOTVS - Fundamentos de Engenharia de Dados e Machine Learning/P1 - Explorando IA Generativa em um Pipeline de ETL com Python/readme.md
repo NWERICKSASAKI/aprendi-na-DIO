@@ -62,3 +62,9 @@ Para gerar os dados foi utilizado as configurações abaixo:
 Salvando o CSV localmente neste repositório, vou acessar o arquivo simulando como se estivesse na internet.
 
 No caso o CSV se localiza na seguinte url: <https://github.com/NWERICKSASAKI/aprendi-na-DIO/raw/refs/heads/main/TOTVS%20-%20Fundamentos%20de%20Engenharia%20de%20Dados%20e%20Machine%20Learning/P1%20-%20Explorando%20IA%20Generativa%20em%20um%20Pipeline%20de%20ETL%20com%20Python/MOCK_DATA.csv>
+
+Resolvi acrescentar mais alguns *IDs* no arquivo `SDW2023.csv` se não ia ter poucos dados para manipular.  
+
+Devido a indisponibilidade de utilizar uma chave de API da OpenAI válida, o enriquecimento foi dado com base no valor monetário que os usuários possuem.  
+
+Por fim, será simulado um POST em uma url fictícia.
