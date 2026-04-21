@@ -2,7 +2,7 @@
 
 ## Método ABCDE
 
-Divisão de pastas para organização para dashvboards do Felipão:
+Divisão de abas / pastas para organização para dashboards do Felipão:
 
 **A** - Assets (recursos: imagens, vídeos, gifs, áudios, palheta de cores)  
 **B** - Bases (dados para gerar a dashboard principal ou outras medidas)  
@@ -10,3 +10,8 @@ Divisão de pastas para organização para dashvboards do Felipão:
 **D** - Dashboard (Painél visual)  
 **E** - Extras (material PDF, estudos, documentações)  
 
+## Transformando Dados em Informações
+
+Dados x Informações
+
+Dados responde alguma pergunta.
