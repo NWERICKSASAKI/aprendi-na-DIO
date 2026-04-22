@@ -44,4 +44,4 @@ A implementação de ferramentas AWS na empresa *Abstergo Industries tem como es
 Assinatura do Responsável pelo Projeto:
 
 __________________________________________  
-Erick Sasaki**
+Erick Sasaki
