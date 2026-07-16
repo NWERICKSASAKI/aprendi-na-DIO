@@ -1,0 +1,14 @@
+[gd_scene format=3 uid="uid://dq11wq46fi5vp"]
+
+[ext_resource type="Texture2D" uid="uid://dlsjmt7jk824m" path="res://addons/Tiny Swords/Factions/Knights/Troops/Dead/Dead.png" id="1_gpoi3"]
+[ext_resource type="Texture2D" uid="uid://c8qtjspn71qdl" path="res://addons/Tiny Swords/Factions/Knights/Troops/Warrior/Blue/Warrior_Blue.png" id="2_kmmxp"]
+
+[node name="Node2D" type="Node2D" unique_id=323469248]
+
+[node name="Dead" type="Sprite2D" parent="." unique_id=1549008170]
+position = Vector2(-554, 507)
+texture = ExtResource("1_gpoi3")
+
+[node name="WarriorBlue" type="Sprite2D" parent="." unique_id=1891143566]
+position = Vector2(523, 183)
+texture = ExtResource("2_kmmxp")

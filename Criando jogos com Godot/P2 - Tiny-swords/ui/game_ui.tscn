@@ -1,0 +1,86 @@
+[gd_scene format=3 uid="uid://hchyogtqwdx6"]
+
+[ext_resource type="Texture2D" uid="uid://x7ilthnqy160" path="res://addons/Tiny Swords/UI/Banners/Banner_Horizontal.png" id="1_dcmab"]
+[ext_resource type="Script" uid="uid://cc627vnbqc7m7" path="res://ui/game_ui.gd" id="1_w46tp"]
+[ext_resource type="Texture2D" uid="uid://1k11o5nbxo3" path="res://addons/Tiny Swords/Resources/Resources/M_Idle_(NoShadow).png" id="3_7hrjk"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_yf5fn"]
+texture = ExtResource("1_dcmab")
+texture_margin_left = 32.0
+texture_margin_top = 16.0
+texture_margin_right = 32.0
+texture_margin_bottom = 40.0
+axis_stretch_horizontal = 2
+axis_stretch_vertical = 2
+region_rect = Rect2(32, 48, 128, 120)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_g4v7s"]
+atlas = ExtResource("3_7hrjk")
+region = Rect2(40, 48, 56, 56)
+
+[node name="GameUI" type="CanvasLayer" unique_id=1560967946]
+script = ExtResource("1_w46tp")
+
+[node name="TimerLabel" type="Label" parent="." unique_id=209622866]
+unique_name_in_owner = true
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -60.5
+offset_top = 48.0
+offset_right = 60.5
+offset_bottom = 93.0
+grow_horizontal = 2
+scale = Vector2(0.98074174, 0.95059985)
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(0.9696924, 0.9696924, 0.9696924, 1)
+theme_override_font_sizes/font_size = 32
+text = "00:00"
+horizontal_alignment = 1
+
+[node name="Panel" type="Panel" parent="." unique_id=260254110]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -233.0
+offset_top = 40.0
+offset_right = -46.437256
+offset_bottom = 127.0
+grow_horizontal = 0
+scale = Vector2(1.0103151, 1)
+theme_override_styles/panel = SubResource("StyleBoxTexture_yf5fn")
+
+[node name="MeatLabel" type="Label" parent="Panel" unique_id=635671440]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 5.6976776
+offset_top = -32.5
+offset_right = 118.73099
+offset_bottom = 12.5
+grow_horizontal = 2
+grow_vertical = 2
+scale = Vector2(0.98074174, 0.95059985)
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(0.012617188, 0.012617188, 0.012617188, 1)
+theme_override_font_sizes/font_size = 32
+text = "5"
+
+[node name="TextureRect" type="TextureRect" parent="Panel" unique_id=292743110]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -52.69999
+offset_top = -37.5
+offset_right = 3.3000107
+offset_bottom = 18.500004
+grow_horizontal = 2
+grow_vertical = 2
+texture = SubResource("AtlasTexture_g4v7s")
